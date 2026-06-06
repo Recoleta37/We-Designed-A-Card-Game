@@ -1,0 +1,169 @@
+{
+  "prologue": [
+    {"speaker": "魔王？？？", "text": "世界已经开始改变。"},
+    {"speaker": "魔王？？？", "text": "魔族将出现在任何地方。"},
+    {"speaker": "魔王？？？", "text": "真神已经消失。"}
+  ],
+  "c1_l1": [
+    {"speaker": "Narrator", "text": "在那场梦后，你明白自己要走了。"},
+    {"speaker": "Narrator", "text": "精灵圣地正在呼唤你。"},
+    {"speaker": "养母", "text": "去吧。不要让世界替你决定命运。"}
+  ],
+  "c1_l10_after": [
+    {"speaker": "阿拉贡", "text": "人族需要你留下。"},
+    {"speaker": "Narrator", "text": "王城的地牢深处，你救出了被囚禁的精灵使者。"},
+    {"speaker": "精灵使者", "text": "森林会记得这一次开门。从今以后，我与你同行。"},
+    {"speaker": "System", "text": "剧情人物加入：精灵使者"}
+  ],
+  "boss_魔王？？？": [
+    {"speaker": "魔王？？？", "text": "梦的尽头仍然是战场。"},
+    {"speaker": "System", "text": "Boss 登场：魔王？？？"}
+  ],
+  "boss_阿拉贡": [
+    {"speaker": "阿拉贡", "text": "如果你必须离开，就先证明你不会倒在路上。"},
+    {"speaker": "System", "text": "章节Boss登场：阿拉贡"}
+  ],
+  "ally_阿拉贡": [
+    {"speaker": "阿拉贡", "text": "我会与你同行。至少在你还需要人族之剑时。"},
+    {"speaker": "System", "text": "剧情队友加入：阿拉贡"}
+  ],
+  "c2_l5_after": [
+    {"speaker": "吸血鬼伯爵", "text": "但你不能杀死我。"},
+    {"speaker": "吸血鬼伯爵", "text": "甚至你需要答应我的条件。"},
+    {"speaker": "吸血鬼伯爵", "text": "杀死米格。"},
+    {"speaker": "吸血鬼伯爵", "text": "然后带着他偷走的东西去找艾琳。"},
+    {"speaker": "吸血鬼伯爵", "text": "不然我不会解除离开猩红平原的结界。"}
+  ],
+  "boss_吸血鬼伯爵": [
+    {"speaker": "吸血鬼伯爵", "text": "猩红平原欢迎所有仍有血液的人。"},
+    {"speaker": "System", "text": "剧情Boss登场：吸血鬼伯爵"}
+  ],
+  "boss_偷窃者米格": [
+    {"speaker": "米格", "text": "我是偷窃者。"},
+    {"speaker": "米格", "text": "让我看看你有什么，然后我会有更多。"},
+    {"speaker": "米格", "text": "希望你能杀死我。"}
+  ],
+  "c2_l10_after": [
+    {"speaker": "Narrator", "text": "你获得了偷窃之力。"},
+    {"speaker": "Narrator", "text": "但能偷走的只有记忆。"},
+    {"speaker": "Narrator", "text": "米格的记忆像雨一样落下。"},
+    {"speaker": "米格", "text": "我只是一位仆人。"},
+    {"speaker": "米格", "text": "又怎么有资格爱上伯爵的女儿。"},
+    {"speaker": "米格", "text": "我记得雨夜伯爵解散了所有仆人。"},
+    {"speaker": "米格", "text": "我饥寒交迫地躺在废墟之中。"},
+    {"speaker": "米格", "text": "魔王就那样出现在我面前。"},
+    {"speaker": "米格", "text": "他赐予我偷窃万物的能力。"},
+    {"speaker": "米格", "text": "而我需要偷走伯爵的一样东西。"},
+    {"speaker": "米格", "text": "在伯爵的城堡，我见到了他的女儿。"},
+    {"speaker": "米格", "text": "我没想到她变成了那样。"},
+    {"speaker": "米格", "text": "我知道我做了什么。"},
+    {"speaker": "米格", "text": "我也偷走了我的灵魂。"},
+    {"speaker": "米格", "text": "我就这样往前走着。"},
+    {"speaker": "米格", "text": "从平原走到沙漠。"},
+    {"speaker": "米格", "text": "直到这座远古城市挡住了我。"},
+    {"speaker": "米格", "text": "我就留在这里。"},
+    {"speaker": "米格", "text": "等着有人结束我的人生。"}
+  ],
+  "c3_l1": [
+    {"speaker": "游侠", "text": "我会与你同行。赤心仍在跳动，我们仍有时间。"}
+  ],
+  "c3_l10_after": [
+    {"speaker": "Narrator", "text": "艾琳的回忆像雪一样融化。"},
+    {"speaker": "艾琳", "text": "我只是城堡伯爵的女儿。"},
+    {"speaker": "艾琳", "text": "直到我的父亲试图复活我死去的哥哥。"},
+    {"speaker": "艾琳", "text": "那个金色的身影就那样出现了。"},
+    {"speaker": "艾琳", "text": "他告诉父亲。"},
+    {"speaker": "艾琳", "text": "“不死才是诅咒，而我将会赐予你们。”"},
+    {"speaker": "艾琳", "text": "从此世界上诞生了吸血鬼，而我就是吸血鬼始祖的女儿。"},
+    {"speaker": "艾琳", "text": "我记得闯进来的人是我曾经的仆人。"},
+    {"speaker": "艾琳", "text": "不过无所谓了。"},
+    {"speaker": "艾琳", "text": "感谢有人破除了我的诅咒。"}
+  ],
+  "boss_艾琳": [
+    {"speaker": "艾琳", "text": "赤心不是弱点。它是我仍在这里的证明。"},
+    {"speaker": "System", "text": "章节Boss登场：艾琳"}
+  ],
+  "ally_游侠": [
+    {"speaker": "游侠", "text": "我的箭会替你看住后方。"},
+    {"speaker": "System", "text": "剧情队友加入：游侠"}
+  ],
+  "c4_l10_after": [
+    {"speaker": "Narrator", "text": "阿格尼的记忆燃烧着。"},
+    {"speaker": "阿格尼", "text": "我是至高无上的精灵王。"},
+    {"speaker": "阿格尼", "text": "却爱上了被诅咒的吸血鬼。"},
+    {"speaker": "阿格尼", "text": "长生。"},
+    {"speaker": "阿格尼", "text": "只有这样才能与她厮守。"},
+    {"speaker": "阿格尼", "text": "我也要获取它，而邪神给了我机会。"},
+    {"speaker": "阿格尼", "text": "但邪神没有说。"},
+    {"speaker": "阿格尼", "text": "这也是诅咒。"}
+  ],
+  "boss_阿格尼": [
+    {"speaker": "阿格尼", "text": "我是精灵王阿格尼。若你要穿过圣地，就证明你不会践踏森林。"},
+    {"speaker": "System", "text": "章节Boss登场：精灵王阿格尼"}
+  ],
+  "c5_l1": [
+    {"speaker": "加百列", "text": "撒冷不会回答你，但我会。"}
+  ],
+  "c5_l10_after": [
+    {"speaker": "米凯尔", "text": "我给你讲个故事吧，人类。"},
+    {"speaker": "米凯尔", "text": "我们天使，在圣河飘下的小舟诞生。"},
+    {"speaker": "米凯尔", "text": "扶养我们的是父母，而同坐小舟的则是兄妹。"},
+    {"speaker": "米凯尔", "text": "我们世代与魔族为战。"},
+    {"speaker": "米凯尔", "text": "我成为天使的领袖。"},
+    {"speaker": "米凯尔", "text": "我的妹妹却爱上了魔族。"},
+    {"speaker": "米凯尔", "text": "她失踪后我迷茫地沿圣河而上。"},
+    {"speaker": "米凯尔", "text": "不知哪里我见到了闪光的身影。"},
+    {"speaker": "米凯尔", "text": "他赐予我六翼。"},
+    {"speaker": "米凯尔", "text": "而拥有六翼的天使会改变世界的命运。"}
+  ],
+  "boss_米凯尔": [
+    {"speaker": "米凯尔", "text": "审判并不需要理由。它只需要降临。"},
+    {"speaker": "System", "text": "章节Boss登场：米凯尔"}
+  ],
+  "ally_加百列": [
+    {"speaker": "加百列", "text": "我以天使之名加入你，但不以天使之命束缚你。"},
+    {"speaker": "System", "text": "剧情队友加入：加百列"}
+  ],
+  "c6_l10_after": [
+    {"speaker": "Narrator", "text": "伊维尔的记忆融于黑夜。"},
+    {"speaker": "伊维尔", "text": "我的父亲是最残暴的魔王。"},
+    {"speaker": "伊维尔", "text": "居然有天使爱上了他。"},
+    {"speaker": "伊维尔", "text": "那愚蠢的天使被榨干了最后的价值。"},
+    {"speaker": "伊维尔", "text": "但她的孩子——我欺凌过的孩子。"},
+    {"speaker": "伊维尔", "text": "哪里来的力量。"},
+    {"speaker": "伊维尔", "text": "他轻而易举地打败了我。"},
+    {"speaker": "伊维尔", "text": "我早就不是魔王了，他才是真正的魔王。"}
+  ],
+  "boss_伊维尔": [
+    {"speaker": "伊维尔", "text": "踏入魔境的人，迟早要承认自己也有火。"},
+    {"speaker": "System", "text": "章节Boss登场：伊维尔"}
+  ],
+  "c7_l10_after": [
+    {"speaker": "母亲", "text": "回到一切的开始。"},
+    {"speaker": "莱索恩", "text": "你终于要醒了。"},
+    {"speaker": "Narrator", "text": "梦境结束。你获得了邪神赐福。"}
+  ],
+  "boss_莱索恩": [
+    {"speaker": "莱索恩", "text": "终焉不是毁灭。终焉只是最后一个问题。"},
+    {"speaker": "System", "text": "章节Boss登场：莱索恩"}
+  ],
+  "boss_米凯尔与阿格尼": [
+    {"speaker": "Narrator", "text": "米凯尔与阿格尼的影子同时落下。"},
+    {"speaker": "System", "text": "世界复战：米凯尔与阿格尼"}
+  ],
+  "boss_最终问题": [
+    {"speaker": "Narrator", "text": "没有敌人站在你面前。只有问题。"},
+    {"speaker": "System", "text": "最终问题即将开始。"}
+  ],
+  "ending": [
+    {"speaker": "Narrator", "text": "我已经在这里太久了。"},
+    {"speaker": "Narrator", "text": "我已经忘掉了一切。"},
+    {"speaker": "Narrator", "text": "我似乎可以把这里的气捏成生命。"},
+    {"speaker": "Narrator", "text": "我模糊地记得那些生命的样子。"},
+    {"speaker": "Narrator", "text": "我似乎还记得什么。"},
+    {"speaker": "Narrator", "text": "我不知道做些什么了。"},
+    {"speaker": "Narrator", "text": "也许可以捏出一个蓝色的星球。"},
+    {"speaker": "Narrator", "text": "容纳我捏出的生命。"},
+    {"speaker": "System", "text": "游戏结束。"}
+  ]
+}
