@@ -16,6 +16,8 @@ endif()
 
 add_executable(WorldPveExtreme
     main.cpp
+    BattleEngine.h
+    BattleEngine.cpp
     GameTypes.h
     MainWindow.h
     MainWindow.cpp
