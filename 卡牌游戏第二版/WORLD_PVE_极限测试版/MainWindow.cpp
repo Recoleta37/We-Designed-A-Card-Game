@@ -27,25 +27,6 @@
 
 namespace
 {
-const int kHeroSlot = 2;
-const int kMaxSkills = 5;
-const int kMaxRelics = 5;
-
-bool isUniqueBossName(const QString& name)
-{
-    static const QStringList bosses = {
-        QStringLiteral("魔王？？？"),
-        QStringLiteral("阿拉贡"),
-        QStringLiteral("偷窃者米格"),
-        QStringLiteral("艾琳"),
-        QStringLiteral("阿格尼"),
-        QStringLiteral("米凯尔"),
-        QStringLiteral("伊维尔"),
-        QStringLiteral("莱索恩")
-    };
-    return bosses.contains(name);
-}
-
 QPushButton* makeCardButton(const QString& name)
 {
     QPushButton* button = new QPushButton;
@@ -185,46 +166,19 @@ QString styleAssetUrl(const QString& relativePath)
 }
 }
 
-MainWindow::MainWindow(QWidget* parent) : QWidget(parent)
+MainWindow::MainWindow(QWidget* parent) : QWidget(parent), storyManager(this), mapManager(this)
 {
     setWindowTitle(QStringLiteral("WORLD Alpha 0.9 PVE 极限测试版"));
     setMinimumSize(1320, 820);
     resize(1500, 900);
     buildUi();
     initData();
-    loadStory();
+    storyManager.loadStory();
     startGame();
 }
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event)
 {
-    if (watched == mapOverlay && event->type() == QEvent::MouseButtonPress)
-    {
-        if (mapReady)
-        {
-            mapOverlay->hide();
-            auto callback = mapFinishedCallback;
-            mapFinishedCallback = {};
-            if (callback) callback();
-        }
-        return true;
-    }
-    if (watched == chapterOverlay && event->type() == QEvent::MouseButtonPress)
-    {
-        if (chapterTitleReady)
-        {
-            chapterOverlay->hide();
-            auto callback = chapterTitleFinishedCallback;
-            chapterTitleFinishedCallback = {};
-            if (callback) callback();
-        }
-        return true;
-    }
-    if (watched == storyOverlay && event->type() == QEvent::MouseButtonPress)
-    {
-        nextStoryStep();
-        return true;
-    }
     return QWidget::eventFilter(watched, event);
 }
 
@@ -262,9 +216,8 @@ void MainWindow::buildUi()
     root->addLayout(center, 4);
     root->addWidget(buildRightPanel(), 1);
 
-    buildStoryOverlay();
-    buildChapterOverlay();
-    buildMapOverlay();
+    mapManager.buildChapterOverlay();
+    mapManager.buildMapOverlay();
 
     const QString textureUrl = styleAssetUrl(QStringLiteral("assets/ui/parchment_tile.png"));
     const QString textureRule = textureUrl.isEmpty() ? QString() : QStringLiteral(" background-image:url(%1);").arg(textureUrl);
@@ -437,6 +390,14 @@ QWidget* MainWindow::buildBottomBar()
     {
         skillButtons[i] = makeCardButton("skillCard");
         skillButtons[i]->setCheckable(true);
+        /// [Recoleta37] 限制最多同时勾选2张技能：超出时自动取消刚点击的按钮
+        connect(skillButtons[i], &QPushButton::clicked, this, [this, i]() {
+            int checkedCount = 0;
+            for (int j = 0; j < kMaxSkills; ++j)
+                if (skillButtons[j]->isChecked()) ++checkedCount;
+            if (checkedCount > 2)
+                skillButtons[i]->setChecked(false);
+        });
         skills->addWidget(skillButtons[i]);
     }
     layout->addWidget(skillBox, 3);
@@ -469,236 +430,12 @@ QWidget* MainWindow::buildRightPanel()
     return box;
 }
 
-void MainWindow::buildStoryOverlay()
-{
-    storyOverlay = new QWidget(this);
-    storyOverlay->setStyleSheet("background:white;");
-    storyOverlay->hide();
-    storyOverlay->installEventFilter(this);
-
-    QVBoxLayout* layout = new QVBoxLayout(storyOverlay);
-    layout->addStretch();
-    QWidget* textBox = new QWidget;
-    textBox->setStyleSheet("background:#050505; border-radius:4px;");
-    QVBoxLayout* textLayout = new QVBoxLayout(textBox);
-    storySpeaker = new QLabel;
-    storySpeaker->setStyleSheet("background:#050505; color:#e7c879; font-weight:700; font-size:18px;");
-    storyText = new QLabel;
-    storyText->setWordWrap(true);
-    storyText->setStyleSheet("background:#050505; color:white; font-size:22px;");
-    textLayout->addWidget(storySpeaker);
-    textLayout->addWidget(storyText);
-    layout->addWidget(textBox);
-
-    connect(&storyTimer, &QTimer::timeout, this, [this]() { tickStory(); });
-}
-
-void MainWindow::buildChapterOverlay()
-{
-    chapterOverlay = new QWidget(this);
-    chapterOverlay->setStyleSheet("background:white;");
-    chapterOverlay->hide();
-    chapterOverlay->installEventFilter(this);
-
-    QVBoxLayout* layout = new QVBoxLayout(chapterOverlay);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->addStretch();
-
-    QWidget* titleArea = new QWidget;
-    titleArea->setStyleSheet("background:white;");
-    titleArea->setFixedHeight(190);
-    QVBoxLayout* titleLayout = new QVBoxLayout(titleArea);
-    titleLayout->setContentsMargins(0, 0, 0, 0);
-
-    chapterChineseLabel = new QLabel;
-    chapterChineseLabel->setAlignment(Qt::AlignCenter);
-    chapterChineseLabel->setStyleSheet("background:white; color:#111111; font-size:54px; font-weight:700; letter-spacing:0px;");
-
-    chapterEnglishLabel = new QLabel;
-    chapterEnglishLabel->setAlignment(Qt::AlignCenter);
-    chapterEnglishLabel->setStyleSheet("background:white; color:#222222; font-family:'Segoe Script','Brush Script MT','Georgia'; font-size:30px; font-style:italic;");
-
-    titleLayout->addWidget(chapterChineseLabel);
-    titleLayout->addWidget(chapterEnglishLabel);
-    layout->addWidget(titleArea);
-    layout->addStretch();
-
-    connect(&chapterTitleTimer, &QTimer::timeout, this, [this]() {
-        chapterTitleReady = true;
-        chapterTitleTimer.stop();
-    });
-}
-
-void MainWindow::buildMapOverlay()
-{
-    mapOverlay = new QWidget(this);
-    mapOverlay->setStyleSheet("background:#f4ead0;");
-    mapOverlay->hide();
-    mapOverlay->installEventFilter(this);
-
-    mapImageLabel = new QLabel(mapOverlay);
-    mapImageLabel->setAlignment(Qt::AlignCenter);
-    mapImageLabel->setScaledContents(true);
-    mapImageLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
-    mapImageLabel->setStyleSheet("background:#f4ead0;");
-
-    const QStringList candidates = {
-        QApplication::applicationDirPath() + "/assets/maps/world_map_fantasy_wide_ui_v1.png",
-        QApplication::applicationDirPath() + "/assets/maps/world_map_from_distribution.png",
-        QApplication::applicationDirPath() + "/../assets/maps/world_map_fantasy_wide_ui_v1.png",
-        QApplication::applicationDirPath() + "/../assets/maps/world_map_from_distribution.png",
-        QApplication::applicationDirPath() + "/../../assets/maps/world_map_fantasy_wide_ui_v1.png",
-        QApplication::applicationDirPath() + "/../../assets/maps/world_map_from_distribution.png",
-        QDir::currentPath() + "/assets/maps/world_map_fantasy_wide_ui_v1.png",
-        QDir::currentPath() + "/assets/maps/world_map_from_distribution.png",
-        "assets/maps/world_map_fantasy_wide_ui_v1.png",
-        "assets/maps/world_map_from_distribution.png"
-    };
-    QPixmap mapPixmap;
-    for (const QString& path : candidates)
-    {
-        if (mapPixmap.load(path))
-        {
-            break;
-        }
-    }
-    if (!mapPixmap.isNull())
-    {
-        mapImageLabel->setPixmap(mapPixmap);
-    }
-    else
-    {
-        mapImageLabel->setText(QStringLiteral("WORLD Alpha 地图素材缺失\nassets/maps/world_map_fantasy_wide_ui_v1.png"));
-        mapImageLabel->setStyleSheet("background:#efe4c6; color:#2a2015; font-size:24px;");
-    }
-
-    mapHintLabel = new QLabel(QStringLiteral("点击任意位置继续"), mapOverlay);
-    mapHintLabel->setAlignment(Qt::AlignCenter);
-    mapHintLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
-    mapHintLabel->setStyleSheet("background:rgba(40,28,16,190); color:#f3d993; border-radius:8px; font-size:18px; padding:8px;");
-
-    for (int i = 0; i < 10; ++i)
-    {
-        QFrame* blackDot = new QFrame(mapOverlay);
-        blackDot->setAttribute(Qt::WA_TransparentForMouseEvents);
-        blackDot->setStyleSheet("background:#050505; border:1px solid #f1d58f;");
-        blackDot->setVisible(i != 9);
-        mapBlackDots.push_back(blackDot);
-
-        QFrame* whiteDot = new QFrame(mapOverlay);
-        whiteDot->setAttribute(Qt::WA_TransparentForMouseEvents);
-        whiteDot->setStyleSheet("background:white; border:1px solid #111111;");
-        QGraphicsOpacityEffect* opacity = new QGraphicsOpacityEffect(whiteDot);
-        opacity->setOpacity(0.0);
-        whiteDot->setGraphicsEffect(opacity);
-        whiteDot->setVisible(i != 9);
-        mapWhiteDots.push_back(whiteDot);
-        mapWhiteDotEffects.push_back(opacity);
-    }
-
-    mapWhiteWash = new QWidget(mapOverlay);
-    mapWhiteWash->setAttribute(Qt::WA_TransparentForMouseEvents);
-    mapWhiteWash->setStyleSheet("background:white;");
-    mapWhiteWashOpacity = new QGraphicsOpacityEffect(mapWhiteWash);
-    mapWhiteWashOpacity->setOpacity(0.0);
-    mapWhiteWash->setGraphicsEffect(mapWhiteWashOpacity);
-    mapWhiteWash->hide();
-
-    connect(&mapTimer, &QTimer::timeout, this, [this]() {
-        mapReady = true;
-        mapTimer.stop();
-        if (mapHintLabel != nullptr)
-        {
-            mapHintLabel->show();
-            mapHintLabel->raise();
-        }
-    });
-}
-
+/// [Recoleta37] Phase 4: overlay 几何更新拆分给 StoryManager 和 MapManager
 void MainWindow::updateOverlayGeometry()
 {
     const QRect fullRect(0, 0, width(), height());
-    if (storyOverlay != nullptr)
-    {
-        storyOverlay->setGeometry(fullRect);
-        if (storyOverlay->isVisible())
-        {
-            storyOverlay->raise();
-        }
-    }
-    if (chapterOverlay != nullptr)
-    {
-        chapterOverlay->setGeometry(fullRect);
-        if (chapterOverlay->isVisible())
-        {
-            chapterOverlay->raise();
-        }
-    }
-    if (mapOverlay != nullptr)
-    {
-        mapOverlay->setGeometry(fullRect);
-        const int margin = 34;
-        QSize imageSize(width() - margin * 2, height() - margin * 2);
-        const QPixmap mapPixmap = mapImageLabel->pixmap();
-        if (!mapPixmap.isNull())
-        {
-            imageSize = mapPixmap.size();
-            imageSize.scale(width() - margin * 2, height() - margin * 2, Qt::KeepAspectRatio);
-        }
-        const QRect imageRect((width() - imageSize.width()) / 2, (height() - imageSize.height()) / 2, imageSize.width(), imageSize.height());
-        mapImageLabel->setGeometry(imageRect);
-
-        const int dotSize = std::max(10, imageRect.width() / 80);
-        for (int i = 0; i < mapBlackDots.size(); ++i)
-        {
-            const QPointF ratio = mapPointRatio(i);
-            const int x = imageRect.x() + int(ratio.x() * imageRect.width()) - dotSize / 2;
-            const int y = imageRect.y() + int(ratio.y() * imageRect.height()) - dotSize / 2;
-            const QRect dotRect(x, y, dotSize, dotSize);
-            mapBlackDots[i]->setGeometry(dotRect);
-            mapWhiteDots[i]->setGeometry(dotRect);
-        }
-
-        mapHintLabel->setGeometry(width() / 2 - 130, height() - 76, 260, 42);
-        mapWhiteWash->setGeometry(fullRect);
-        if (mapOverlay->isVisible())
-        {
-            mapOverlay->raise();
-        }
-    }
-}
-
-void MainWindow::loadStory()
-{
-    const QStringList candidates = {
-        QApplication::applicationDirPath() + "/data/story.json",
-        QApplication::applicationDirPath() + "/../data/story.json",
-        QApplication::applicationDirPath() + "/../../data/story.json",
-        QDir::currentPath() + "/data/story.json",
-        "data/story.json"
-    };
-    QByteArray bytes;
-    for (const QString& path : candidates)
-    {
-        QFile file(path);
-        if (file.open(QIODevice::ReadOnly))
-        {
-            bytes = file.readAll();
-            break;
-        }
-    }
-    QJsonDocument doc = QJsonDocument::fromJson(bytes);
-    QJsonObject root = doc.object();
-    for (const QString& key : root.keys())
-    {
-        QVector<QPair<QString, QString>> lines;
-        for (const QJsonValue& value : root.value(key).toArray())
-        {
-            QJsonObject item = value.toObject();
-            lines.push_back({ item.value("speaker").toString("Narrator"), item.value("text").toString() });
-        }
-        storyScenes[key] = lines;
-    }
+    storyManager.updateOverlayGeometry(fullRect);
+    mapManager.updateOverlayGeometry(fullRect);
 }
 
 void MainWindow::initData()
@@ -736,29 +473,14 @@ void MainWindow::startGame()
     endingShown = false;
     lastChapterTitleShown = -1;
     secondChapterAncientCityShown = false;
-    mapPointLit.fill(false);
+    mapManager.resetMapPoints();
     chapterIndex = 0;
     levelIndex = 1;
     gold = 0;
     relics.clear();
     skillSlots.clear();
     clearAllUnits();
-    showStoryKey("prologue", [this]() { enterCurrentLevel(); });
-}
-
-QVector<ChapterDef> chapters()
-{
-    return {
-        {QStringLiteral("序章：梦境"), {QStringLiteral("梦影"), QStringLiteral("异变魔影"), QStringLiteral("破碎信徒")}, QStringLiteral("梦境守卫"), QStringLiteral("真神残响"), QStringLiteral("梦境裂隙"), QStringLiteral("魔王？？？"), QString(), QString()},
-        {QStringLiteral("第一章：微风如诗"), {QStringLiteral("野狼"), QStringLiteral("山贼"), QStringLiteral("森林弓手"), QStringLiteral("流浪剑士")}, QStringLiteral("山贼头目"), QStringLiteral("迷失骑士"), QStringLiteral("王城禁卫"), QStringLiteral("阿拉贡"), QString(), QStringLiteral("阿拉贡")},
-        {QStringLiteral("第二章：猩红平原"), {QStringLiteral("血仆"), QStringLiteral("夜蝠"), QStringLiteral("吸血鬼侍从"), QStringLiteral("猩红猎犬")}, QStringLiteral("血骑士"), QStringLiteral("吸血鬼伯爵"), QStringLiteral("远古守卫"), QStringLiteral("偷窃者米格"), QString(), QString()},
-        {QStringLiteral("第三章：赤心跃动"), {QStringLiteral("血术师"), QStringLiteral("夜行者"), QStringLiteral("血卫"), QStringLiteral("城堡守卫")}, QStringLiteral("赤心骑士"), QStringLiteral("伯爵残影"), QStringLiteral("王座守卫"), QStringLiteral("艾琳"), QStringLiteral("跃动赤心"), QStringLiteral("游侠")},
-        {QStringLiteral("第四章：精灵圣地"), {QStringLiteral("精灵射手"), QStringLiteral("古木守卫"), QStringLiteral("毒叶法师"), QStringLiteral("迷途精灵")}, QStringLiteral("古树长老"), QStringLiteral("圣地看守者"), QStringLiteral("精灵祭司"), QStringLiteral("阿格尼"), QStringLiteral("精灵王冠"), QString()},
-        {QStringLiteral("第五章：撒冷"), {QStringLiteral("圣光侍从"), QStringLiteral("审判者"), QStringLiteral("守护天使"), QStringLiteral("圣河少女")}, QStringLiteral("六翼候补"), QStringLiteral("天使裁决官"), QStringLiteral("圣河守门人"), QStringLiteral("米凯尔"), QStringLiteral("圣洁六翼"), QStringLiteral("加百列")},
-        {QStringLiteral("第六章：魔境"), {QStringLiteral("小恶魔"), QStringLiteral("魔族战士"), QStringLiteral("火焰术士"), QStringLiteral("深渊刺客")}, QStringLiteral("魔境猎手"), QStringLiteral("深渊领主"), QStringLiteral("旧王亲卫"), QStringLiteral("伊维尔"), QString(), QString()},
-        {QStringLiteral("第七章：终焉"), {QStringLiteral("终焉魔兵"), QStringLiteral("虚空术士"), QStringLiteral("异界刺客"), QStringLiteral("黑翼守卫")}, QStringLiteral("终焉看门人"), QStringLiteral("伊维尔残影"), QStringLiteral("邪神使徒"), QStringLiteral("莱索恩"), QStringLiteral("邪神赐福"), QString()},
-        {QStringLiteral("第八章：世界"), {QStringLiteral("世界回声"), QStringLiteral("旧日生命"), QStringLiteral("白色梦境")}, QStringLiteral("永恒残响"), QStringLiteral("米凯尔与阿格尼"), QStringLiteral("世界门扉"), QStringLiteral("最终问题"), QStringLiteral("世界"), QString()}
-    };
+    storyManager.showStoryKey("prologue", [this]() { enterCurrentLevel(); });
 }
 
 void MainWindow::enterCurrentLevel()
@@ -770,16 +492,16 @@ void MainWindow::enterCurrentLevel()
     }
     if (levelIndex == 1 && lastChapterTitleShown != chapterIndex)
     {
-        showChapterTitle([this]() {
+        mapManager.showChapterTitle(chapterIndex, [this]() {
             lastChapterTitleShown = chapterIndex;
-            showMapPoint(mapPointForChapter(chapterIndex), false, [this]() { enterCurrentLevel(); });
+            mapManager.showMapPoint(MapManager::mapPointForChapter(chapterIndex), false, [this]() { enterCurrentLevel(); });
         });
         return;
     }
     if (chapterIndex == 2 && levelIndex == 10 && !secondChapterAncientCityShown)
     {
         secondChapterAncientCityShown = true;
-        showMapPoint(8, false, [this]() { enterCurrentLevel(); });
+        mapManager.showMapPoint(8, false, [this]() { enterCurrentLevel(); });
         return;
     }
     inBattle = false;
@@ -807,18 +529,18 @@ void MainWindow::enterCurrentLevel()
 
     QStringList storyKeys;
     QString key = QString("c%1_l%2").arg(chapterIndex).arg(levelIndex);
-    if (storyScenes.contains(key))
+    if (storyManager.hasScene(key))
     {
         storyKeys << key;
     }
-    if (boss && storyScenes.contains(QStringLiteral("boss_") + enemyName))
+    if (boss && storyManager.hasScene(QStringLiteral("boss_") + enemyName))
     {
         storyKeys << QStringLiteral("boss_") + enemyName;
     }
 
     if (!storyKeys.isEmpty())
     {
-        showStory(storyKeys, [this]() { setupBattle(); });
+        storyManager.showStory(storyKeys, [this]() { setupBattle(); });
     }
     else
     {
@@ -912,9 +634,9 @@ void MainWindow::setupWorldEvent()
             inBattle = true;
             refreshUi();
         };
-        if (storyScenes.contains(QStringLiteral("boss_米凯尔与阿格尼")))
+        if (storyManager.hasScene(QStringLiteral("boss_米凯尔与阿格尼")))
         {
-            showStoryKey(QStringLiteral("boss_米凯尔与阿格尼"), setupWorldBoss);
+            storyManager.showStoryKey(QStringLiteral("boss_米凯尔与阿格尼"), setupWorldBoss);
         }
         else
         {
@@ -1039,18 +761,18 @@ void MainWindow::finishLevel()
     tryFuseWorld();
 
     QStringList storyKeys;
-    if (!bossAlly.isEmpty() && storyScenes.contains(QStringLiteral("ally_") + bossAlly))
+    if (!bossAlly.isEmpty() && storyManager.hasScene(QStringLiteral("ally_") + bossAlly))
     {
         storyKeys << QStringLiteral("ally_") + bossAlly;
     }
     QString key = QString("c%1_l%2_after").arg(chapterIndex).arg(levelIndex);
-    if (storyScenes.contains(key))
+    if (storyManager.hasScene(key))
     {
         storyKeys << key;
     }
     if (!storyKeys.isEmpty())
     {
-        showStory(storyKeys, [this]() { refreshUi(); });
+        storyManager.showStory(storyKeys, [this]() { refreshUi(); });
     }
     refreshUi();
 }
@@ -1181,18 +903,45 @@ void MainWindow::showDeckRefillDialog()
     QVBoxLayout* layout = new QVBoxLayout(&dialog);
     layout->addWidget(smallLabel(QStringLiteral("非主角棋子死亡。选择任意张可放置棋子上场；放不下或未选择的牌返回牌库。")));
 
+    /// [Recoleta37] 按排计算空位数，每排独立限制勾选数
+    /// 槽位布局: 0,1=前排 / 2(英雄),3=中排 / 4=后排
+    int emptyFront = 0, emptyMiddle = 0, emptyBack = 0;
+    for (int i = 0; i < 5; ++i)
+    {
+        if (i == kHeroSlot || playerUnits[i] != nullptr) continue;
+        if (i == 0 || i == 1) ++emptyFront;
+        else if (i == 2 || i == 3) ++emptyMiddle;
+        else ++emptyBack;
+    }
+
     QVector<QCheckBox*> checks;
     QHBoxLayout* cards = new QHBoxLayout;
-    for (const UnitTemplate& t : offer)
+    for (int i = 0; i < offer.size(); ++i)
     {
+        const UnitTemplate& t = offer[i];
         QCheckBox* box = new QCheckBox(QStringLiteral("%1\n%2\nHP%3 ATK%4\n技能:%5")
                                            .arg(t.name, t.row)
                                            .arg(t.hp)
                                            .arg(t.atk)
                                            .arg(t.skill));
-        box->setEnabled(hasEmptySlotForRow(t.row));
-        box->setChecked(box->isEnabled());
+        bool placeable = hasEmptySlotForRow(t.row);
+        box->setEnabled(placeable);
+        box->setChecked(false);
         box->setFixedSize(160, 150);
+        /// [Recoleta37] 按排限制勾选上限：该排已选数 > 该排空位数时自动取消
+        const QString row = t.row;
+        connect(box, &QCheckBox::clicked, this, [&checks, &offer, box, row, emptyFront, emptyMiddle, emptyBack]() {
+            int rowLimit = (row == QStringLiteral("前排")) ? emptyFront
+                         : (row == QStringLiteral("中排")) ? emptyMiddle
+                         : emptyBack;
+            int rowChecked = 0;
+            for (int j = 0; j < checks.size(); ++j)
+            {
+                if (checks[j]->isChecked() && offer[j].row == row) ++rowChecked;
+            }
+            if (rowChecked > rowLimit)
+                box->setChecked(false);
+        });
         checks.push_back(box);
         cards->addWidget(box);
     }
@@ -1264,6 +1013,8 @@ UnitTemplate MainWindow::makeEnemyTemplate(const QString& name, bool boss) const
     return {name, QStringLiteral("敌人"), row, name, hp, atk};
 }
 
+/// [Recoleta37] 棋子严格按排分配：前排→{0,1}，中排→{2,3}，后排→{4}
+/// 不再 fallback 到其他排，避免前排棋子放入后排空位等逻辑错误
 int MainWindow::slotForRow(const QString& row, const std::array<UnitInstance*, 5>& board) const
 {
     QList<int> slotList;
@@ -1274,13 +1025,11 @@ int MainWindow::slotForRow(const QString& row, const std::array<UnitInstance*, 5
     {
         if (s != kHeroSlot && board[s] == nullptr) return s;
     }
-    for (int i = 0; i < 5; ++i)
-    {
-        if (i != kHeroSlot && board[i] == nullptr) return i;
-    }
     return -1;
 }
 
+/// [Recoleta37] 检查指定排是否有空位，仅查该排槽位，不 fallback
+/// 与 slotForRow() 保持一致：棋子只能放入自己属性对应的排
 bool MainWindow::hasEmptySlotForRow(const QString& row) const
 {
     QList<int> slotList;
@@ -1330,6 +1079,7 @@ UnitInstance* MainWindow::highestAtk(std::array<UnitInstance*, 5>& board) const
 void MainWindow::runRound()
 {
     if (!inBattle) return;
+    skillsUsedThisTurn = 0;  /// [Recoleta37] 每回合重置技能使用计数
     appendLog(QStringLiteral("第%1回合").arg(battleRound));
     applyRelicsStart();
     bossMechanics();
@@ -1389,16 +1139,17 @@ void MainWindow::generateSkills()
     }
 }
 
+/// [Recoleta37] 修复：使用成员变量 skillsUsedThisTurn 跟踪本回合已释放次数，
+/// 避免同一回合内多次点击按钮绕过"每回合最多2张"的限制。
 void MainWindow::castSelectedSkills()
 {
-    int used = 0;
     for (int i = skillSlots.size() - 1; i >= 0; --i)
     {
-        if (skillButtons[i]->isChecked() && used < 2)
+        if (skillButtons[i]->isChecked() && skillsUsedThisTurn < 2)
         {
             castSkill(skillSlots[i].name);
             skillSlots.removeAt(i);
-            ++used;
+            ++skillsUsedThisTurn;
         }
     }
     refreshUi();
@@ -1435,7 +1186,7 @@ void MainWindow::castSkill(const QString& name)
         int s = slotForRow(QStringLiteral("前排"), playerUnits);
         if (s >= 0) playerUnits[s] = createUnit({QStringLiteral("小树人"), QStringLiteral("精灵族"), QStringLiteral("前排"), QStringLiteral("斩击"), 18, 4});
     }
-    else if (name == QStringLiteral("古树根须")) if (UnitInstance* u = lowestHp(playerUnits)) u->shield += 15;
+    else if (name == QStringLiteral("古树根须")) { if (UnitInstance* u = lowestHp(playerUnits)) u->shield += 15; }
     else if (name == QStringLiteral("藤蔓缠绕")) for (UnitInstance* e : alive(enemyUnits)) e->base.atk = std::max(0, e->base.atk - 1);
     else if (name == QStringLiteral("圣光")) for (UnitInstance* u : alive(playerUnits)) heal(u, 8 + (relics.contains(QStringLiteral("圣河水滴")) ? 5 : 0));
     else if (name == QStringLiteral("审判")) dealDamage(highestAtk(enemyUnits), 25 + bonus, name);
@@ -1444,7 +1195,7 @@ void MainWindow::castSkill(const QString& name)
     else if (name == QStringLiteral("圣河回响") && !skillSlots.isEmpty() && skillSlots.size() < kMaxSkills) skillSlots.push_back(skillSlots.last());
     else if (name == QStringLiteral("火球")) dealDamage(firstAlive(enemyUnits), 18 + bonus, name);
     else if (name == QStringLiteral("深渊爪击")) dealDamage(enemyUnits[4] ? enemyUnits[4] : firstAlive(enemyUnits), 22 + bonus, name);
-    else if (name == QStringLiteral("狂暴")) if (UnitInstance* u = highestAtk(playerUnits)) { u->base.atk += 10; u->hp -= 5; }
+    else if (name == QStringLiteral("狂暴")) { if (UnitInstance* u = highestAtk(playerUnits)) { u->base.atk += 10; u->hp -= 5; } }
     else if (name == QStringLiteral("邪神赐福")) for (UnitInstance* u : alive(playerUnits)) u->base.atk *= 2;
     else if (name == QStringLiteral("命运之刃")) dealDamage(firstAlive(enemyUnits), playerUnits[kHeroSlot] ? int(playerUnits[kHeroSlot]->base.atk * (1.0 + chapterIndex * 0.1)) : 0, name);
 }
@@ -1560,282 +1311,17 @@ bool MainWindow::playerDefeated() const
     return playerUnits[kHeroSlot] == nullptr || playerUnits[kHeroSlot]->hp <= 0;
 }
 
-void MainWindow::showStory(const QStringList& keys, std::function<void()> onFinished)
-{
-    pendingStoryKeys = keys;
-    storyFinishedCallback = onFinished;
-    nextStoryStep();
-}
-
-void MainWindow::showStoryKey(const QString& key, std::function<void()> onFinished)
-{
-    showStory(QStringList{key}, onFinished);
-}
-
-void MainWindow::nextStoryStep()
-{
-    if (!storyOverlay->isVisible())
-    {
-        updateOverlayGeometry();
-        storyOverlay->raise();
-        storyOverlay->show();
-        updateOverlayGeometry();
-    }
-    if (activeStory.isEmpty() || storyLineIndex >= activeStory.size())
-    {
-        if (!pendingStoryKeys.isEmpty())
-        {
-            QString key = pendingStoryKeys.takeFirst();
-            activeStory = storyScenes.value(key);
-            if (activeStory.isEmpty())
-            {
-                activeStory = {{QStringLiteral("Narrator"), QStringLiteral("故事片段缺失：") + key}};
-            }
-            storyLineIndex = 0;
-            storyCharIndex = 0;
-            storyLineComplete = false;
-            storySpeaker->setText(activeStory[0].first);
-            storyText->clear();
-            storyTimer.start(25);
-        }
-        else
-        {
-            storyOverlay->hide();
-            auto callback = storyFinishedCallback;
-            storyFinishedCallback = {};
-            if (callback) callback();
-        }
-        return;
-    }
-    if (!storyLineComplete)
-    {
-        storyCharIndex = activeStory.value(storyLineIndex).second.size();
-        storyText->setText(activeStory.value(storyLineIndex).second);
-        storyLineComplete = true;
-        return;
-    }
-    ++storyLineIndex;
-    if (storyLineIndex < activeStory.size())
-    {
-        storyCharIndex = 0;
-        storyLineComplete = false;
-        storySpeaker->setText(activeStory[storyLineIndex].first);
-        storyText->clear();
-        storyTimer.start(25);
-        return;
-    }
-    if (!pendingStoryKeys.isEmpty())
-    {
-        QString key = pendingStoryKeys.takeFirst();
-        activeStory = storyScenes.value(key);
-        if (activeStory.isEmpty())
-        {
-            activeStory = {{QStringLiteral("Narrator"), QStringLiteral("故事片段缺失：") + key}};
-        }
-        storyLineIndex = 0;
-        storyCharIndex = 0;
-        storyLineComplete = false;
-        storySpeaker->setText(activeStory[0].first);
-        storyText->clear();
-        storyTimer.start(25);
-        return;
-    }
-    storyTimer.stop();
-    storyOverlay->hide();
-    auto callback = storyFinishedCallback;
-    storyFinishedCallback = {};
-    if (callback) callback();
-}
-
-void MainWindow::tickStory()
-{
-    if (activeStory.isEmpty()) return;
-    const QString full = activeStory[storyLineIndex].second;
-    ++storyCharIndex;
-    storyText->setText(full.left(storyCharIndex));
-    if (storyCharIndex >= full.size())
-    {
-        storyLineComplete = true;
-        storyTimer.stop();
-    }
-}
-
 void MainWindow::showEnding()
 {
     if (endingShown) return;
     endingShown = true;
     inBattle = false;
-    showMapPoint(-1, true, [this]() {
-    showStoryKey("ending", [this]() {
+    mapManager.showMapPoint(-1, true, [this]() {
+    storyManager.showStoryKey("ending", [this]() {
         QMessageBox::information(this, QStringLiteral("游戏结束"), QStringLiteral("最终结局完成，返回主菜单。"));
         startGame();
     });
     });
-}
-
-void MainWindow::showChapterTitle(std::function<void()> onFinished)
-{
-    if (chapterIndex >= chapters().size())
-    {
-        if (onFinished) onFinished();
-        return;
-    }
-
-    chapterTitleReady = false;
-    chapterTitleFinishedCallback = onFinished;
-    updateOverlayGeometry();
-    chapterOverlay->raise();
-
-    QString title = chapters()[chapterIndex].title;
-    title.replace(QStringLiteral("："), QStringLiteral("\n"));
-    chapterChineseLabel->setText(title);
-    chapterEnglishLabel->setText(chapterEnglishName(chapterIndex));
-
-    QGraphicsOpacityEffect* chineseOpacity = new QGraphicsOpacityEffect(chapterChineseLabel);
-    QGraphicsOpacityEffect* englishOpacity = new QGraphicsOpacityEffect(chapterEnglishLabel);
-    chineseOpacity->setOpacity(0.0);
-    englishOpacity->setOpacity(0.0);
-    chapterChineseLabel->setGraphicsEffect(chineseOpacity);
-    chapterEnglishLabel->setGraphicsEffect(englishOpacity);
-
-    QPropertyAnimation* chineseFade = new QPropertyAnimation(chineseOpacity, "opacity", chapterOverlay);
-    chineseFade->setDuration(4000);
-    chineseFade->setStartValue(0.0);
-    chineseFade->setEndValue(1.0);
-
-    QPropertyAnimation* englishFade = new QPropertyAnimation(englishOpacity, "opacity", chapterOverlay);
-    englishFade->setDuration(4000);
-    englishFade->setStartValue(0.0);
-    englishFade->setEndValue(1.0);
-
-    chapterOverlay->show();
-    updateOverlayGeometry();
-    chineseFade->start(QAbstractAnimation::DeleteWhenStopped);
-    englishFade->start(QAbstractAnimation::DeleteWhenStopped);
-    chapterTitleTimer.start(4000);
-}
-
-void MainWindow::showMapPoint(int pointIndex, bool fadeWholeMap, std::function<void()> onFinished)
-{
-    mapReady = false;
-    mapFinishedCallback = onFinished;
-    if (mapHintLabel != nullptr)
-    {
-        mapHintLabel->hide();
-    }
-    if (mapWhiteWashOpacity != nullptr)
-    {
-        mapWhiteWashOpacity->setOpacity(0.0);
-    }
-    if (mapWhiteWash != nullptr)
-    {
-        mapWhiteWash->hide();
-    }
-
-    for (int i = 0; i < mapWhiteDotEffects.size(); ++i)
-    {
-        const bool isOutsideMapPoint = (i == 9);
-        const bool shouldShowPoint = !isOutsideMapPoint || mapPointLit[i] || pointIndex == i;
-        mapWhiteDotEffects[i]->setOpacity(mapPointLit[i] ? 1.0 : 0.0);
-        mapBlackDots[i]->setVisible(shouldShowPoint);
-        mapWhiteDots[i]->setVisible(shouldShowPoint);
-    }
-
-    mapOverlay->show();
-    updateOverlayGeometry();
-    mapOverlay->raise();
-    mapImageLabel->raise();
-    for (QFrame* dot : mapBlackDots) dot->raise();
-    for (QFrame* dot : mapWhiteDots) dot->raise();
-
-    if (fadeWholeMap)
-    {
-        if (mapWhiteWash != nullptr)
-        {
-            mapWhiteWash->show();
-            mapWhiteWash->raise();
-        }
-        QPropertyAnimation* fade = new QPropertyAnimation(mapWhiteWashOpacity, "opacity", mapOverlay);
-        fade->setDuration(2600);
-        fade->setStartValue(0.0);
-        fade->setEndValue(1.0);
-        fade->start(QAbstractAnimation::DeleteWhenStopped);
-        mapTimer.start(2600);
-        return;
-    }
-
-    if (pointIndex >= 0 && pointIndex < mapWhiteDotEffects.size())
-    {
-        mapPointLit[pointIndex] = true;
-        mapWhiteDotEffects[pointIndex]->setOpacity(0.0);
-        QPropertyAnimation* fade = new QPropertyAnimation(mapWhiteDotEffects[pointIndex], "opacity", mapOverlay);
-        fade->setDuration(1600);
-        fade->setStartValue(0.0);
-        fade->setEndValue(1.0);
-        fade->start(QAbstractAnimation::DeleteWhenStopped);
-    }
-    mapTimer.start(1600);
-}
-
-int MainWindow::mapPointForChapter(int index) const
-{
-    static const std::array<int, 9> chapterPoints = {
-        0, // 序章：开始点
-        1, // 第一章：王城 / 人类诸国
-        2, // 第二章：猩红平原，第二章第十关会另亮远古城市
-        3, // 第三章：艾琳堡垒
-        4, // 第四章：精灵圣地
-        5, // 第五章：撒冷
-        6, // 第六章：魔境
-        7, // 第七章：魔都
-        9  // 第八章：地图外，点在地图下方
-    };
-    if (index >= 0 && index < int(chapterPoints.size()))
-    {
-        return chapterPoints[index];
-    }
-    return 9;
-}
-
-QPointF MainWindow::mapPointRatio(int pointIndex) const
-{
-    static const std::array<QPointF, 10> points = {
-        QPointF(0.190, 0.690), // 开始点
-        QPointF(0.255, 0.515), // 王城
-        QPointF(0.352, 0.475), // 猩红平原
-        QPointF(0.318, 0.388), // 艾琳堡垒
-        QPointF(0.364, 0.263), // 精灵圣地
-        QPointF(0.530, 0.407), // 撒冷
-        QPointF(0.848, 0.402), // 魔境
-        QPointF(0.790, 0.522), // 魔都
-        QPointF(0.095, 0.474), // 远古城市
-        QPointF(0.500, 0.898)  // 地图外
-    };
-    if (pointIndex >= 0 && pointIndex < int(points.size()))
-    {
-        return points[pointIndex];
-    }
-    return QPointF(0.5, 0.5);
-}
-
-QString MainWindow::chapterEnglishName(int index) const
-{
-    static const QStringList names = {
-        QStringLiteral("Dream"),
-        QStringLiteral("Breeze as Poetry"),
-        QStringLiteral("Scarlet Plain"),
-        QStringLiteral("Crimson Heartbeat"),
-        QStringLiteral("Secret of Undeath"),
-        QStringLiteral("Salem"),
-        QStringLiteral("Demon Realm"),
-        QStringLiteral("Finale"),
-        QStringLiteral("World")
-    };
-    if (index >= 0 && index < names.size())
-    {
-        return names[index];
-    }
-    return QStringLiteral("World");
 }
 
 void MainWindow::refreshUi()
@@ -1858,8 +1344,9 @@ void MainWindow::refreshUi()
     refreshSkills();
     refreshRelics();
     roundButton->setEnabled(inBattle);
-    skillCastButton->setEnabled(inBattle && !skillSlots.isEmpty());
-    nextButton->setEnabled(!inBattle && !storyOverlay->isVisible() && !chapterOverlay->isVisible());
+    /// [Recoleta37] 技能槽为空 或 本回合已用完2次 → 禁用释放按钮
+    skillCastButton->setEnabled(inBattle && !skillSlots.isEmpty() && skillsUsedThisTurn < 2);
+    nextButton->setEnabled(!inBattle && !storyManager.isOverlayVisible() && !mapManager.isChapterOverlayVisible());
 }
 
 void MainWindow::refreshBoard()
@@ -1984,10 +1471,13 @@ void MainWindow::addRelic(const QString& relic)
         return;
     }
 
+    /// [Recoleta37] 添加显式的"不替换"选项，避免用户只能靠取消来放弃
+    replaceOptions << QStringLiteral("—— 不替换，放弃此遗物 ——");
+
     bool ok = false;
     QString choice = QInputDialog::getItem(this,
                                            QStringLiteral("选择替换遗物槽"),
-                                           QStringLiteral("遗物槽已满。选择要替换的位置："),
+                                           QStringLiteral("遗物槽已满。选择要替换的位置，或选择「不替换」放弃："),
                                            replaceOptions,
                                            0,
                                            false,
@@ -1999,11 +1489,15 @@ void MainWindow::addRelic(const QString& relic)
     }
 
     int chosen = replaceOptions.indexOf(choice);
-    if (chosen >= 0)
+    if (chosen >= 0 && chosen < replaceIndexes.size())
     {
         int relicIndex = replaceIndexes[chosen];
         appendLog(QStringLiteral("替换遗物：%1 -> %2").arg(relics[relicIndex], relic));
         relics[relicIndex] = relic;
+    }
+    else
+    {
+        appendLog(QStringLiteral("放弃获得遗物：%1").arg(relic));
     }
 }
 

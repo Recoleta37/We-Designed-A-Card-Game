@@ -16,8 +16,13 @@ endif()
 
 add_executable(WorldPveExtreme
     main.cpp
+    GameTypes.h
     MainWindow.h
     MainWindow.cpp
+    MapManager.h
+    MapManager.cpp
+    StoryManager.h
+    StoryManager.cpp
 )
 
 target_link_libraries(WorldPveExtreme PRIVATE ${QT_PACKAGE}::Widgets)

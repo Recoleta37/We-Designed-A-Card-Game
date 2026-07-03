@@ -12,45 +12,9 @@
 #include <QTimer>
 #include <QWidget>
 
-struct UnitTemplate
-{
-    QString name;
-    QString faction;
-    QString row;
-    QString skill;
-    int hp;
-    int atk;
-};
-
-struct UnitInstance
-{
-    UnitTemplate base;
-    int hp = 0;
-    int shield = 0;
-    int aliveRounds = 0;
-    bool hero = false;
-    bool boss = false;
-    bool revived = false;
-    bool protectedDeath = false;
-};
-
-struct SkillCard
-{
-    QString name;
-    QString source;
-};
-
-struct ChapterDef
-{
-    QString title;
-    QStringList normalEnemies;
-    QString elite4;
-    QString boss5;
-    QString elite9;
-    QString boss10;
-    QString bossRelic;
-    QString bossAlly;
-};
+#include "GameTypes.h"
+#include "MapManager.h"
+#include "StoryManager.h"
 
 class MainWindow : public QWidget
 {
@@ -66,13 +30,12 @@ private:
     int levelIndex = 1;
     int battleRound = 1;
     int gold = 0;
+    /// [Recoleta37] 本回合已释放技能数量，上限2，每回合重置
+    int skillsUsedThisTurn = 0;
     bool inBattle = false;
     bool endingShown = false;
-    bool chapterTitleReady = false;
     int lastChapterTitleShown = -1;
     bool secondChapterAncientCityShown = false;
-    bool mapReady = false;
-    std::array<bool, 10> mapPointLit{};
 
     std::array<UnitInstance*, 5> playerUnits{};
     std::array<UnitInstance*, 5> enemyUnits{};
@@ -80,10 +43,6 @@ private:
     QVector<SkillCard> skillSlots;
     QStringList relics;
     QStringList logLines;
-    QMap<QString, QVector<QPair<QString, QString>>> storyScenes;
-    QStringList pendingStoryKeys;
-    std::function<void()> storyFinishedCallback;
-
     QLabel* titleLabel = nullptr;
     QLabel* progressLabel = nullptr;
     QLabel* heroLabel = nullptr;
@@ -96,42 +55,17 @@ private:
     QPushButton* roundButton = nullptr;
     QPushButton* nextButton = nullptr;
 
-    QWidget* storyOverlay = nullptr;
-    QLabel* storySpeaker = nullptr;
-    QLabel* storyText = nullptr;
-    QTimer storyTimer;
-    QVector<QPair<QString, QString>> activeStory;
-    int storyLineIndex = 0;
-    int storyCharIndex = 0;
-    bool storyLineComplete = false;
-
-    QWidget* chapterOverlay = nullptr;
-    QLabel* chapterChineseLabel = nullptr;
-    QLabel* chapterEnglishLabel = nullptr;
-    QTimer chapterTitleTimer;
-    std::function<void()> chapterTitleFinishedCallback;
-
-    QWidget* mapOverlay = nullptr;
-    QLabel* mapImageLabel = nullptr;
-    QLabel* mapHintLabel = nullptr;
-    QWidget* mapWhiteWash = nullptr;
-    QGraphicsOpacityEffect* mapWhiteWashOpacity = nullptr;
-    QVector<QFrame*> mapBlackDots;
-    QVector<QFrame*> mapWhiteDots;
-    QVector<QGraphicsOpacityEffect*> mapWhiteDotEffects;
-    QTimer mapTimer;
-    std::function<void()> mapFinishedCallback;
+    /// [Recoleta37] Phase 2: 剧情管理交由 StoryManager
+    StoryManager storyManager;
+    /// [Recoleta37] Phase 4: 章节标题 + 地图 overlay 交由 MapManager
+    MapManager mapManager;
 
     void buildUi();
     QWidget* buildBoard();
     QWidget* buildBottomBar();
     QWidget* buildRightPanel();
-    void buildStoryOverlay();
-    void buildChapterOverlay();
-    void buildMapOverlay();
     void updateOverlayGeometry();
 
-    void loadStory();
     void initData();
     void startGame();
     void enterCurrentLevel();
@@ -168,16 +102,7 @@ private:
     bool enemiesDefeated() const;
     bool playerDefeated() const;
 
-    void showStory(const QStringList& keys, std::function<void()> onFinished = {});
-    void showStoryKey(const QString& key, std::function<void()> onFinished = {});
-    void nextStoryStep();
-    void tickStory();
     void showEnding();
-    void showChapterTitle(std::function<void()> onFinished);
-    void showMapPoint(int pointIndex, bool fadeWholeMap, std::function<void()> onFinished);
-    int mapPointForChapter(int index) const;
-    QPointF mapPointRatio(int pointIndex) const;
-    QString chapterEnglishName(int index) const;
 
     void refreshUi();
     void refreshBoard();
