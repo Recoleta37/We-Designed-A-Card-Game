@@ -5,11 +5,13 @@ TARGET = WorldPveExtreme
 
 SOURCES += \
     main.cpp \
+    BattleEngine.cpp \
     MainWindow.cpp \
     MapManager.cpp \
     StoryManager.cpp
 
 HEADERS += \
+    BattleEngine.h \
     GameTypes.h \
     MainWindow.h \
     MapManager.h \
