@@ -7,6 +7,7 @@
 #include <QGraphicsOpacityEffect>
 #include <QLabel>
 #include <QPointF>
+#include <QProgressBar>
 #include <QPushButton>
 #include <QTextEdit>
 #include <QTimer>
@@ -37,12 +38,40 @@ private:
 
     QLabel* titleLabel = nullptr;
     QLabel* progressLabel = nullptr;
-    QLabel* heroLabel = nullptr;
-    QLabel* goldLabel = nullptr;
+    // [Recoleta37] 主角状态从纯文字改为图标 + 进度条
+    QProgressBar* heroHpBar = nullptr;
+    QProgressBar* heroShieldBar = nullptr;
+    QLabel* heroAtkLabel = nullptr;
+    QLabel* heroGoldLabel = nullptr;
     QTextEdit* logView = nullptr;
-    std::array<QPushButton*, 10> boardButtons{};
-    std::array<QPushButton*, 5> skillButtons{};
-    std::array<QPushButton*, 5> relicButtons{};
+    // [Recoleta37] 卡牌 UI：QFrame 容器 + 内部子控件，替代纯文字 QPushButton
+    struct BoardCard {
+        QFrame* frame = nullptr;
+        QLabel* rowLabel = nullptr;
+        QLabel* atkLabel = nullptr;
+        QLabel* nameLabel = nullptr;
+        QProgressBar* hpBar = nullptr;
+        QLabel* shieldLabel = nullptr;
+    };
+    std::array<BoardCard, 10> boardCards{};
+    // [Recoleta37] 技能牌改为 QFrame + QLabel，支持富文本
+    struct SkillCard {
+        QFrame* frame = nullptr;
+        QLabel* sourceLabel = nullptr;
+        QLabel* nameLabel = nullptr;
+        QLabel* descLabel = nullptr;
+        bool checked = false;
+    };
+    std::array<SkillCard, 5> skillCards{};
+    /// [Recoleta37] 已选中的技能卡数量
+    int checkedSkillCount() const;
+    // [Recoleta37] 遗物改为 QFrame + QLabel(word wrap)，修复长描述被截断
+    struct RelicCard {
+        QFrame* frame = nullptr;
+        QLabel* nameLabel = nullptr;
+        QLabel* descLabel = nullptr;
+    };
+    std::array<RelicCard, 5> relicCards{};
     QPushButton* skillCastButton = nullptr;
     QPushButton* roundButton = nullptr;
     QPushButton* nextButton = nullptr;

@@ -526,14 +526,25 @@ void BattleEngine::setupBattle(int chapterIndex, int levelIndex)
     else enemyName = c.normalEnemies[(levelIndex + chapterIndex) % c.normalEnemies.size()];
     boss = isUniqueBossName(enemyName);
 
-    enemyUnits_[slotForRow(boss ? QStringLiteral("中排") : QStringLiteral("前排"), enemyUnits_)] = createUnit(makeEnemyTemplate(enemyName, boss, chapterIndex, levelIndex), false, boss);
+    // [Recoleta37] 主敌人也使用模板自身的 row，不再硬编码（如"血术师"含"术"应去后排）
+    UnitTemplate mainT = makeEnemyTemplate(enemyName, boss, chapterIndex, levelIndex);
+    enemyUnits_[slotForRow(mainT.row, enemyUnits_)] = createUnit(mainT, false, boss);
+    // [Recoleta37] 修复：优先使用模板自身 row（弓/术/刺→后排，其余→前排）
+    // 若该排已满则 fallback 到其他排，避免 slotForRow 返回 -1 导致数组越界
+    // （如序章第9关梦影+异变魔影+破碎信徒全是前排，需一个让到后排）
+    auto placeExtraEnemy = [this](const UnitTemplate& t) {
+        int s = slotForRow(t.row, enemyUnits_);
+        if (s < 0) s = slotForRow(t.row == QStringLiteral("前排") ? QStringLiteral("后排") : QStringLiteral("前排"), enemyUnits_);
+        if (s < 0) s = slotForRow(QStringLiteral("中排"), enemyUnits_);
+        if (s >= 0) enemyUnits_[s] = createUnit(t, false, false);
+    };
     if (levelIndex >= 6)
     {
-        enemyUnits_[slotForRow(QStringLiteral("后排"), enemyUnits_)] = createUnit(makeEnemyTemplate(c.normalEnemies[(levelIndex + 1) % c.normalEnemies.size()], false, chapterIndex, levelIndex), false, false);
+        placeExtraEnemy(makeEnemyTemplate(c.normalEnemies[(levelIndex + 1) % c.normalEnemies.size()], false, chapterIndex, levelIndex));
     }
     if (levelIndex >= 9)
     {
-        enemyUnits_[slotForRow(QStringLiteral("前排"), enemyUnits_)] = createUnit(makeEnemyTemplate(c.normalEnemies[(levelIndex + 2) % c.normalEnemies.size()], false, chapterIndex, levelIndex), false, false);
+        placeExtraEnemy(makeEnemyTemplate(c.normalEnemies[(levelIndex + 2) % c.normalEnemies.size()], false, chapterIndex, levelIndex));
     }
 
     if (enemyName == QStringLiteral("偷窃者米格"))
@@ -844,7 +855,8 @@ void BattleEngine::showDeckRefillDialog()
     dialog.setWindowTitle(QStringLiteral("牌库补员：抽取4张"));
     dialog.setMinimumWidth(720);
     QVBoxLayout* layout = new QVBoxLayout(&dialog);
-    layout->addWidget(smallLabel(QStringLiteral("非主角棋子死亡。选择任意张可放置棋子上场；放不下或未选择的牌返回牌库。")));
+    // [Recoleta37] 修改描述：实际选择受对应排空位限制，简化文字
+    layout->addWidget(smallLabel(QStringLiteral("非主角棋子死亡，可选择对应位置棋子上场；未选择的牌返回牌库。")));
 
     /// [Recoleta37] 按排计算空位数，每排独立限制勾选数
     /// 槽位布局: 0,1=前排 / 2(英雄),3=中排 / 4=后排
