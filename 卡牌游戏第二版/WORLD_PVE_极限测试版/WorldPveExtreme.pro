@@ -5,10 +5,17 @@ TARGET = WorldPveExtreme
 
 SOURCES += \
     main.cpp \
-    MainWindow.cpp
+    BattleEngine.cpp \
+    MainWindow.cpp \
+    MapManager.cpp \
+    StoryManager.cpp
 
 HEADERS += \
-    MainWindow.h
+    BattleEngine.h \
+    GameTypes.h \
+    MainWindow.h \
+    MapManager.h \
+    StoryManager.h
 
 data.files = data
 data.path = $$OUT_PWD
