@@ -112,4 +112,11 @@ private:
     void refreshSkills();
     void refreshRelics();
     void appendLog(const QString& text);
+
+    /// 浮动伤害数字动画
+    void animateCombatEvents();
+    void spawnDamageLabel(const CombatEvent& event, int boardCardIndex, int yOffset);
+    void flashCard(int boardCardIndex);
+
+    bool animating_ = false;
 };

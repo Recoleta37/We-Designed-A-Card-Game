@@ -14,6 +14,16 @@
 class MapManager;
 class StoryManager;
 
+/// 战斗事件 —— 供 MainWindow 消费以播放浮动数字动画
+struct CombatEvent {
+    enum Type { Damage, Heal, ShieldGain };
+    Type type;
+    int targetIndex;   // 0-4=敌方, 5-9=己方
+    int sourceIndex;   // 0-9 来源卡牌索引，-1 无来源
+    int amount;        // 始终为正数
+    int batchId;       // 同一 batch 内共享
+};
+
 /// [Recoleta37] Phase 3: BattleEngine 封装所有战斗相关逻辑
 /// - 单位创建与棋盘管理
 /// - 战斗结算（伤害/治疗/攻击/死亡清理）
@@ -113,6 +123,9 @@ public:
     /// 返回棋盘上当前 HP 最低的存活单位
     UnitInstance* lowestHp(const std::array<UnitInstance*, 5>& board) const;
 
+    /// 返回棋盘上失血最多的存活单位（base.hp - hp 最大），用于治疗
+    UnitInstance* mostWounded(const std::array<UnitInstance*, 5>& board) const;
+
     /// 返回棋盘上当前攻击力最高的存活单位
     UnitInstance* highestAtk(const std::array<UnitInstance*, 5>& board) const;
 
@@ -143,10 +156,21 @@ public:
     // ============================================================
 
     /// 对目标造成伤害（先扣护盾再扣 HP），写入日志
-    void dealDamage(UnitInstance* target, int amount, const QString& reason);
+    /// @param source 攻击者指针，用于定位来源卡牌闪烁；nullptr 表示无来源
+    void dealDamage(UnitInstance* target, int amount, const QString& reason, UnitInstance* source = nullptr);
 
     /// 治疗目标
     void heal(UnitInstance* target, int amount);
+
+    /// 添加护盾并记录 ShieldGain 事件
+    void addShield(UnitInstance* target, int amount, const QString& reason = {});
+
+    /// 战斗事件队列（供 MainWindow 消费后清除）
+    const QVector<CombatEvent>& pendingCombatEvents() const { return pendingCombatEvents_; }
+    void clearCombatEvents() { pendingCombatEvents_.clear(); }
+
+    /// 开始新的事件批次（同一批次的数字同时飘出）
+    void nextEventBatch() { ++eventBatchId_; }
 
     /// 一方全体攻击另一方，playerSide 控制遗物加成
     void allAttack(std::array<UnitInstance*, 5>& attackers,
@@ -264,6 +288,10 @@ private:
     QStringList snapshotLogLines_;
     QStringList logLines_;
 
+    // ---- 事件队列 ----
+    QVector<CombatEvent> pendingCombatEvents_;
+    int eventBatchId_ = 0;
+
     // ---- 回调 ----
     std::function<void(const QString&)> logCallback_;
     std::function<void()> refreshCallback_;
@@ -276,4 +304,7 @@ private:
         logLines_ << text;
         while (logLines_.size() > 80) logLines_.removeFirst();
     }
+
+    /// 根据单位指针查找棋盘卡牌索引（0-4=敌方, 5-9=己方, -1=未找到）
+    int boardCardIndexOf(UnitInstance* target) const;
 };
