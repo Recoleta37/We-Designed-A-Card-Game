@@ -68,6 +68,7 @@ MainWindow::MainWindow(QWidget* parent) : QWidget(parent), storyManager(this), m
     buildUi();
     battleEngine.setRefreshCallback([this]() { refreshUi(); });
     battleEngine.setRestartGameCallback([this]() { startGame(); });
+    battleEngine.setRestartChapterCallback([this]() { restartFromChapterCheckpoint(); });
     initData();
     storyManager.loadStory();
     startGame();
@@ -590,9 +591,14 @@ void MainWindow::initData()
 
 void MainWindow::startGame()
 {
+    initData();
     battleEngine.endingShownRef() = false;
     lastChapterTitleShown = -1;
     secondChapterAncientCityShown = false;
+    chapterCheckpointValid = false;
+    checkpointChapterIndex = 0;
+    checkpointLastChapterTitleShown = -1;
+    checkpointSecondChapterAncientCityShown = false;
     mapManager.resetMapPoints();
     chapterIndex = 0;
     levelIndex = 1;
@@ -601,6 +607,23 @@ void MainWindow::startGame()
     battleEngine.skillSlotsRef().clear();
     battleEngine.clearAllUnits();
     storyManager.showStoryKey("prologue", [this]() { enterCurrentLevel(); });
+}
+
+void MainWindow::restartFromChapterCheckpoint()
+{
+    if (!chapterCheckpointValid || !battleEngine.hasChapterSnapshot())
+    {
+        startGame();
+        return;
+    }
+
+    chapterIndex = checkpointChapterIndex;
+    levelIndex = 1;
+    lastChapterTitleShown = checkpointLastChapterTitleShown;
+    secondChapterAncientCityShown = checkpointSecondChapterAncientCityShown;
+    battleEngine.restoreChapterSnapshot();
+    appendLog(QStringLiteral("从本大章节开始挑战。"));
+    enterCurrentLevel();
 }
 
 void MainWindow::enterCurrentLevel()
@@ -627,6 +650,15 @@ void MainWindow::enterCurrentLevel()
     battleEngine.inBattleRef() = false;
     battleEngine.battleRoundRef() = 1;
     appendLog(QStringLiteral("进入 %1 第%2关").arg(chapters()[chapterIndex].title).arg(levelIndex));
+    if (levelIndex == 1)
+    {
+        battleEngine.saveChapterSnapshot();
+        chapterCheckpointValid = true;
+        checkpointChapterIndex = chapterIndex;
+        checkpointLastChapterTitleShown = lastChapterTitleShown;
+        checkpointSecondChapterAncientCityShown = secondChapterAncientCityShown;
+        appendLog(QStringLiteral("已保存本大章节开始状态。"));
+    }
 
     if (chapterIndex == 8)
     {

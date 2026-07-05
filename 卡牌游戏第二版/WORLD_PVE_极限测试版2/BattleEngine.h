@@ -75,6 +75,12 @@ public:
     void setLogCallback(std::function<void(const QString&)> callback) { logCallback_ = std::move(callback); }
     void setRefreshCallback(std::function<void()> callback) { refreshCallback_ = std::move(callback); }
     void setRestartGameCallback(std::function<void()> callback) { restartGameCallback_ = std::move(callback); }
+    void setRestartChapterCallback(std::function<void()> callback) { restartChapterCallback_ = std::move(callback); }
+
+    /// 保存/恢复大章节开头的完整战斗状态
+    void saveChapterSnapshot();
+    bool hasChapterSnapshot() const { return chapterSnapshotValid_; }
+    void restoreChapterSnapshot();
 
     // ============================================================
     // Step 1: 基础层 —— 单位创建 / 棋盘查询 / 清理
@@ -115,6 +121,9 @@ public:
 
     /// 清理双方棋盘
     void clearAllUnits();
+
+    /// 从牌库中移除一张同名牌
+    bool removeOneRosterCard(const QString& unitName);
 
     // ============================================================
     // Step 2: 描述表 —— 技能/遗物/剧情遗物查询（纯 const）
@@ -201,6 +210,9 @@ public:
     /// 胜利结算（金币/奖励/剧情触发）
     void finishLevel(int chapterIndex, int levelIndex);
 
+    /// 失败结算（主角死亡后选择从头或从本大章节开头挑战）
+    void finishDefeat(int chapterIndex, int levelIndex);
+
     /// 棋子奖励选择对话框
     void showUnitReward();
 
@@ -231,12 +243,32 @@ private:
     QVector<UnitTemplate> roster_;
     QVector<SkillCard> skillSlots_;
     QStringList relics_;
+
+    struct BoardSnapshot
+    {
+        std::array<UnitInstance, 5> units{};
+        std::array<bool, 5> present{};
+    };
+
+    bool chapterSnapshotValid_ = false;
+    int snapshotBattleRound_ = 1;
+    int snapshotGold_ = 0;
+    int snapshotSkillsUsedThisTurn_ = 0;
+    bool snapshotInBattle_ = false;
+    bool snapshotEndingShown_ = false;
+    BoardSnapshot snapshotPlayerUnits_;
+    BoardSnapshot snapshotEnemyUnits_;
+    QVector<UnitTemplate> snapshotRoster_;
+    QVector<SkillCard> snapshotSkillSlots_;
+    QStringList snapshotRelics_;
+    QStringList snapshotLogLines_;
     QStringList logLines_;
 
     // ---- 回调 ----
     std::function<void(const QString&)> logCallback_;
     std::function<void()> refreshCallback_;
     std::function<void()> restartGameCallback_;
+    std::function<void()> restartChapterCallback_;
 
     /// 内部日志写入（替代 MainWindow::appendLog）
     void appendLog(const QString& text)
