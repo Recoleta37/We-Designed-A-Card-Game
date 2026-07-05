@@ -4,9 +4,12 @@
 
 #include <QApplication>
 #include <QCheckBox>
+#include <QDateTime>
 #include <QDialog>
 #include <QDir>
+#include <QEasingCurve>
 #include <QEvent>
+#include <QHash>
 #include <QFile>
 #include <QGridLayout>
 #include <QGraphicsOpacityEffect>
@@ -25,6 +28,8 @@
 #include <QRandomGenerator>
 #include <QScrollBar>
 #include <QVBoxLayout>
+
+static void animateBar(QProgressBar* bar, int newValue);
 
 namespace
 {
@@ -747,12 +752,14 @@ void MainWindow::refreshUi()
     {
         const int maxHp = hero->base.hp;
         heroHpBar->setRange(0, maxHp);
-        heroHpBar->setValue(hero->hp > maxHp ? maxHp : hero->hp);
-        heroHpBar->setFormat(QStringLiteral("%1 / %2").arg(hero->hp).arg(maxHp));
+        int displayHeroHp = hero->hp < 0 ? 0 : (hero->hp > maxHp ? maxHp : hero->hp);
+        animateBar(heroHpBar, displayHeroHp);
+        heroHpBar->setFormat(QStringLiteral("%1 / %2").arg(displayHeroHp).arg(maxHp));
         heroAtkLabel->setText(QStringLiteral("<span style='font-size:18px; font-weight:800;'>%1</span>").arg(hero->base.atk));
         heroShieldBar->setRange(0, maxHp);
-        heroShieldBar->setValue(hero->shield > maxHp ? maxHp : hero->shield);
-        heroShieldBar->setFormat(QStringLiteral("%1").arg(hero->shield));
+        int displayHeroShield = hero->shield < 0 ? 0 : (hero->shield > maxHp ? maxHp : hero->shield);
+        animateBar(heroShieldBar, displayHeroShield);
+        heroShieldBar->setFormat(QStringLiteral("%1").arg(displayHeroShield));
     }
     else
     {
@@ -774,6 +781,8 @@ void MainWindow::refreshUi()
     /// [Recoleta37] 技能槽为空 或 本回合已用完2次 → 禁用释放按钮
     skillCastButton->setEnabled(battleEngine.inBattleRef() && !battleEngine.skillSlotsRef().isEmpty() && battleEngine.skillsUsedThisTurnRef() < 2);
     nextButton->setEnabled(!battleEngine.inBattleRef() && !storyManager.isOverlayVisible() && !mapManager.isChapterOverlayVisible());
+
+    animateCombatEvents();
 }
 
 /// [Recoleta37] 返回 QFrame 卡牌样式，复用原有 boardCardStyle 的配色逻辑
@@ -834,8 +843,9 @@ void MainWindow::refreshBoard()
             card.nameLabel->setText(u->base.name);
             const int maxHp = u->base.hp;
             card.hpBar->setRange(0, maxHp);
-            card.hpBar->setValue(u->hp > maxHp ? maxHp : u->hp);
-            card.hpBar->setFormat(QStringLiteral("%1 / %2").arg(u->hp).arg(maxHp));
+            int displayHp = u->hp < 0 ? 0 : (u->hp > maxHp ? maxHp : u->hp);
+            animateBar(card.hpBar, displayHp);
+            card.hpBar->setFormat(QStringLiteral("%1 / %2").arg(displayHp).arg(maxHp));
             if (u->shield > 0)
             {
                 card.shieldLabel->setText(QStringLiteral("🛡️%1").arg(u->shield));
@@ -929,4 +939,192 @@ void MainWindow::appendLog(const QString& text)
 {
     battleEngine.logLinesRef() << text;
     while (battleEngine.logLinesRef().size() > 80) battleEngine.logLinesRef().removeFirst();
+}
+
+// ============================================================
+// 浮动伤害数字动画
+// ============================================================
+
+/// 手动插值血条动画（60fps），避免 QPropertyAnimation 在嵌套事件循环中的竞态
+static void animateBar(QProgressBar* bar, int newValue)
+{
+    if (!bar) return;
+
+    struct State { int start; int target; qint64 t0; int duration; };
+    static QHash<QProgressBar*, State> states;
+    static QTimer* timer = nullptr;
+
+    State& s = states[bar];
+    s.start = bar->value();       // 从当前显示值出发，保证视觉连续
+    s.target = newValue;
+    s.t0 = QDateTime::currentMSecsSinceEpoch();
+    s.duration = std::min(300, std::abs(newValue - s.start) * 50 + 50);
+
+    if (!timer)
+    {
+        timer = new QTimer(qApp);
+        timer->setInterval(16); // ~60fps
+        QObject::connect(timer, &QTimer::timeout, [] {
+            qint64 now = QDateTime::currentMSecsSinceEpoch();
+            for (auto it = states.begin(); it != states.end(); )
+            {
+                const State& st = it.value();
+                double t = std::min(1.0, (now - st.t0) / double(st.duration));
+                double eased = 1.0 - std::pow(1.0 - t, 3.0); // OutCubic
+                st.start != st.target
+                    ? it.key()->setValue(int(st.start + (st.target - st.start) * eased))
+                    : it.key()->setValue(st.target);
+                if (t >= 1.0)
+                    it = states.erase(it);
+                else
+                    ++it;
+            }
+            if (states.isEmpty()) timer->stop();
+        });
+    }
+    if (!timer->isActive()) timer->start();
+}
+
+void MainWindow::flashCard(int boardCardIndex)
+{
+    if (boardCardIndex < 0 || boardCardIndex >= 10) return;
+    QFrame* card = boardCards[boardCardIndex].frame;
+    if (!card) return;
+
+    QString origStyle = card->styleSheet();
+    // 白色闪烁，对比度高；快速闪两次
+    auto doFlash = [card](const QString& base, int count) {
+        if (count <= 0) return;
+        card->setStyleSheet(base + QStringLiteral(
+            " QFrame#boardCard { border:3px solid #ffffff; }"));
+        QTimer::singleShot(100, card->parentWidget(), [card, base, count]() {
+            card->setStyleSheet(base);  // 还原
+            QTimer::singleShot(50, card->parentWidget(), [card, base, count]() {
+                card->setStyleSheet(base + QStringLiteral(
+                    " QFrame#boardCard { border:3px solid #ffffff; }"));
+                QTimer::singleShot(100, card->parentWidget(), [card, base, count]() {
+                    card->setStyleSheet(base);
+                });
+            });
+        });
+    };
+    doFlash(origStyle, 2);
+}
+
+void MainWindow::animateCombatEvents()
+{
+    if (animating_) return;
+
+    const auto& events = battleEngine.pendingCombatEvents();
+    if (events.isEmpty()) return;
+
+    QVector<CombatEvent> queue;
+    for (const auto& e : events) queue.append(e);
+    battleEngine.clearCombatEvents();
+
+    animating_ = true;
+    roundButton->setEnabled(false);
+    skillCastButton->setEnabled(false);
+    nextButton->setEnabled(false);
+
+    int cardStackOffset[10] = {};
+    int lastBatch = -1;
+
+    for (int i = 0; i < queue.size(); )
+    {
+        const CombatEvent& first = queue[i];
+
+        if (first.batchId != lastBatch)
+        {
+            for (int j = 0; j < 10; ++j) cardStackOffset[j] = 0;
+            lastBatch = first.batchId;
+        }
+
+        if (first.type == CombatEvent::Damage && first.sourceIndex >= 0)
+            flashCard(first.sourceIndex);
+
+        int groupEnd = i;
+        while (groupEnd < queue.size() &&
+               queue[groupEnd].batchId == first.batchId &&
+               queue[groupEnd].sourceIndex == first.sourceIndex)
+        {
+            const auto& e = queue[groupEnd];
+            int idx = e.targetIndex;
+            if (idx >= 0 && idx < 10)
+            {
+                spawnDamageLabel(e, idx, cardStackOffset[idx]);
+                cardStackOffset[idx] += 28;
+            }
+            ++groupEnd;
+        }
+
+        i = groupEnd;
+
+        QApplication::processEvents();
+
+        int delay = (i < queue.size() && queue[i].batchId != first.batchId) ? 700 : 400;
+        QEventLoop waitLoop;
+        QTimer::singleShot(delay, &waitLoop, &QEventLoop::quit);
+        waitLoop.exec();
+    }
+
+    animating_ = false;
+    roundButton->setEnabled(battleEngine.inBattleRef());
+    skillCastButton->setEnabled(battleEngine.inBattleRef() && !battleEngine.skillSlotsRef().isEmpty() && battleEngine.skillsUsedThisTurnRef() < 2);
+    nextButton->setEnabled(!battleEngine.inBattleRef() && !storyManager.isOverlayVisible() && !mapManager.isChapterOverlayVisible());
+}
+
+void MainWindow::spawnDamageLabel(const CombatEvent& event, int boardCardIndex, int yOffset)
+{
+    QFrame* card = boardCards[boardCardIndex].frame;
+    if (!card) return;
+
+    // 定位：卡牌顶部居中
+    QPoint cardTopLeft = card->mapTo(this, QPoint(0, 0));
+    QSize cardSize = card->size();
+
+    // 创建标签
+    QLabel* label = new QLabel(this);
+    QString sign, color;
+    if (event.type == CombatEvent::Damage)      { sign = QStringLiteral("-"); color = QStringLiteral("#ff4444"); }
+    else if (event.type == CombatEvent::Heal)    { sign = QStringLiteral("+"); color = QStringLiteral("#44dd44"); }
+    else                                         { sign = QStringLiteral("+"); color = QStringLiteral("#44aaff"); }
+    label->setText(QStringLiteral("%1%2").arg(sign).arg(event.amount));
+    label->setAttribute(Qt::WA_TransparentForMouseEvents);
+    label->setAttribute(Qt::WA_ShowWithoutActivating);
+    label->setStyleSheet(QStringLiteral(
+        "font-size:22px; font-weight:800; color:%1; background:transparent;").arg(color));
+    label->adjustSize();
+
+    int labelX = cardTopLeft.x() + (cardSize.width() - label->width()) / 2;
+    int labelY = cardTopLeft.y() - 6 - yOffset;
+    label->move(labelX, labelY);
+    label->raise();
+    label->show();
+
+    // 透明度效果
+    QGraphicsOpacityEffect* opacity = new QGraphicsOpacityEffect(label);
+    opacity->setOpacity(1.0);
+    label->setGraphicsEffect(opacity);
+
+    // 上飘动画
+    QPropertyAnimation* posAnim = new QPropertyAnimation(label, "pos", this);
+    posAnim->setDuration(800);
+    posAnim->setStartValue(label->pos());
+    posAnim->setEndValue(label->pos() + QPoint(0, -40));
+    posAnim->setEasingCurve(QEasingCurve::OutQuad);
+
+    // 淡出动画
+    QPropertyAnimation* fadeAnim = new QPropertyAnimation(opacity, "opacity", this);
+    fadeAnim->setDuration(800);
+    fadeAnim->setStartValue(1.0);
+    fadeAnim->setEndValue(0.0);
+    fadeAnim->setEasingCurve(QEasingCurve::InQuad);
+
+    // 动画结束后清理
+    connect(fadeAnim, &QPropertyAnimation::finished, label, &QLabel::deleteLater);
+    connect(fadeAnim, &QPropertyAnimation::finished, opacity, &QObject::deleteLater);
+
+    posAnim->start(QAbstractAnimation::DeleteWhenStopped);
+    fadeAnim->start(QAbstractAnimation::DeleteWhenStopped);
 }

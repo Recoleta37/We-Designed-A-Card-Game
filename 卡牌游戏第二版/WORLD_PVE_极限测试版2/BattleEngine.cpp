@@ -145,6 +145,23 @@ UnitInstance* BattleEngine::lowestHp(const std::array<UnitInstance*, 5>& board) 
     return best;
 }
 
+UnitInstance* BattleEngine::mostWounded(const std::array<UnitInstance*, 5>& board) const
+{
+    UnitInstance* best = nullptr;
+    int bestDeficit = 0;
+    for (UnitInstance* u : board)
+    {
+        if (!u || u->hp <= 0) continue;
+        int deficit = u->base.hp - u->hp; // 已损失血量
+        if (deficit > bestDeficit)
+        {
+            bestDeficit = deficit;
+            best = u;
+        }
+    }
+    return best;
+}
+
 UnitInstance* BattleEngine::highestAtk(const std::array<UnitInstance*, 5>& board) const
 {
     UnitInstance* best = nullptr;
@@ -285,7 +302,7 @@ QString BattleEngine::skillDescription(const QString& skill) const
         {QStringLiteral("箭雨"), QStringLiteral("对敌方全体造成4点伤害")},
         {QStringLiteral("鼓舞"), QStringLiteral("所有友军攻击+2")},
         {QStringLiteral("守护"), QStringLiteral("主角获得10点护盾")},
-        {QStringLiteral("治疗术"), QStringLiteral("治疗最低血友军12点")},
+        {QStringLiteral("治疗术"), QStringLiteral("治疗失血最多友军12点")},
         {QStringLiteral("吸血"), QStringLiteral("造成10点伤害并治疗主角10点")},
         {QStringLiteral("血雾"), QStringLiteral("敌方全体攻击-2")},
         {QStringLiteral("赤心爆发"), QStringLiteral("对首个敌人造成20点伤害")},
@@ -328,39 +345,72 @@ bool BattleEngine::isStoryRelic(const QString& relic) const
 // Step 3: 伤害/治疗/攻击结算
 // ============================================================================
 
-void BattleEngine::dealDamage(UnitInstance* target, int amount, const QString& reason)
+int BattleEngine::boardCardIndexOf(UnitInstance* target) const
+{
+    if (!target) return -1;
+    for (int i = 0; i < 5; ++i)
+    {
+        if (enemyUnits_[i] == target)  return i;       // 0-4
+        if (playerUnits_[i] == target) return 5 + i;   // 5-9
+    }
+    return -1;
+}
+
+void BattleEngine::dealDamage(UnitInstance* target, int amount, const QString& reason, UnitInstance* source)
 {
     if (!target || amount <= 0) return;
     int shieldHit = std::min(target->shield, amount);
     target->shield -= shieldHit;
-    target->hp -= (amount - shieldHit);
+    int hpDmg = amount - shieldHit;
+    target->hp -= hpDmg;
     logLines_ << QStringLiteral("%1 造成 %2 伤害 -> %3").arg(reason).arg(amount).arg(target->base.name);
     while (logLines_.size() > 80) logLines_.removeFirst();
+    if (hpDmg > 0)
+    {
+        int tidx = boardCardIndexOf(target);
+        if (tidx >= 0)
+            pendingCombatEvents_.push_back({CombatEvent::Damage, tidx, boardCardIndexOf(source), hpDmg, eventBatchId_});
+    }
 }
 
 void BattleEngine::heal(UnitInstance* target, int amount)
 {
     if (!target || amount <= 0) return;
-    target->hp += amount;
+    target->hp = std::min(target->hp + amount, target->base.hp);
+    int idx = boardCardIndexOf(target);
+    if (idx >= 0)
+        pendingCombatEvents_.push_back({CombatEvent::Heal, idx, -1, amount, eventBatchId_});
+}
+
+void BattleEngine::addShield(UnitInstance* target, int amount, const QString& /*reason*/)
+{
+    if (!target || amount <= 0) return;
+    target->shield += amount;
+    int idx = boardCardIndexOf(target);
+    if (idx >= 0)
+        pendingCombatEvents_.push_back({CombatEvent::ShieldGain, idx, -1, amount, eventBatchId_});
 }
 
 void BattleEngine::allAttack(std::array<UnitInstance*, 5>& attackers,
                               std::array<UnitInstance*, 5>& defenders,
                               bool playerSide)
 {
+    nextEventBatch();
     for (UnitInstance* u : alive(attackers))
     {
         UnitInstance* target = firstAlive(defenders);
         if (!target) return;
         int dmg = u->base.atk;
         if (playerSide && relics_.contains(QStringLiteral("世界"))) dmg += 50;
-        dealDamage(target, dmg, u->base.name);
+        dealDamage(target, dmg, u->base.name, u);
         if (playerSide && relics_.contains(QStringLiteral("猩红酒杯")) && u->base.faction == QStringLiteral("吸血鬼")) heal(u, 3);
+        if (refreshCallback_) refreshCallback_();
     }
 }
 
 void BattleEngine::bossMechanics(int chapterIndex)
 {
+    nextEventBatch();
     for (UnitInstance* boss : alive(enemyUnits_))
     {
         if (!boss->boss) continue;
@@ -369,19 +419,20 @@ void BattleEngine::bossMechanics(int chapterIndex)
         else if (n == QStringLiteral("吸血鬼伯爵")) heal(boss, 8);
         else if (n == QStringLiteral("偷窃者米格") && !skillSlots_.isEmpty()) castSkill(skillSlots_[QRandomGenerator::global()->bounded(skillSlots_.size())].name, chapterIndex);
         else if (n == QStringLiteral("艾琳")) heal(boss, 12);
-        else if (n == QStringLiteral("阿格尼")) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 3, QStringLiteral("精灵王威压"));
-        else if (n == QStringLiteral("米凯尔") && battleRound_ % 3 == 0) dealDamage(highestAtk(playerUnits_), 28, QStringLiteral("六翼审判"));
+        else if (n == QStringLiteral("阿格尼")) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p,3, QStringLiteral("精灵王威压"), boss);
+        else if (n == QStringLiteral("米凯尔") && battleRound_ % 3 == 0) dealDamage(highestAtk(playerUnits_), 28, QStringLiteral("六翼审判"), boss);
         else if (n == QStringLiteral("伊维尔")) boss->base.atk += 3;
         else if (n == QStringLiteral("莱索恩"))
         {
             int roll = QRandomGenerator::global()->bounded(4);
-            if (roll == 0) boss->shield += 20;
+            if (roll == 0) addShield(boss, 20, QStringLiteral("莱索恩"));
             if (roll == 1) heal(boss, 10);
             if (roll == 2) boss->base.atk *= 2;
-            if (roll == 3) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 4, QStringLiteral("邪神诅咒"));
-            if (boss->hp < boss->base.hp * 0.3) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 5, QStringLiteral("终焉阶段"));
+            if (roll == 3) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 4, QStringLiteral("邪神诅咒"), boss);
+            if (boss->hp < boss->base.hp * 0.3) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 5, QStringLiteral("终焉阶段"), boss);
         }
     }
+    if (refreshCallback_) refreshCallback_();
 }
 
 bool BattleEngine::enemiesDefeated() const
@@ -415,22 +466,33 @@ void BattleEngine::generateSkills()
 
 void BattleEngine::castSkill(const QString& name, int chapterIndex)
 {
+    nextEventBatch();
     logLines_ << QStringLiteral("释放技能：%1").arg(name);
     while (logLines_.size() > 80) logLines_.removeFirst();
     int bonus = relics_.contains(QStringLiteral("魔法书")) ? 3 : 0;
-    if (name == QStringLiteral("斩击")) dealDamage(firstAlive(enemyUnits_), 8 + bonus, name);
+    // 查找技能来源棋子（用于伤害动画闪烁）
+    UnitInstance* skillSource = nullptr;
+    for (const auto& sk : skillSlots_) {
+        if (sk.name == name) {
+            for (UnitInstance* u : playerUnits_) {
+                if (u && u->base.name == sk.source) { skillSource = u; break; }
+            }
+            break;
+        }
+    }
+    if (name == QStringLiteral("斩击")) dealDamage(firstAlive(enemyUnits_), 8 + bonus, name, skillSource);
     else if (name == QStringLiteral("箭雨") || name == QStringLiteral("魔焰"))
     {
-        for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, (name == QStringLiteral("箭雨") ? 4 : 10) + bonus, name);
+        for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, (name == QStringLiteral("箭雨") ? 4 : 10) + bonus, name, skillSource);
     }
     else if (name == QStringLiteral("鼓舞")) for (UnitInstance* u : alive(playerUnits_)) u->base.atk += 2;
-    else if (name == QStringLiteral("守护") && playerUnits_[kHeroSlot]) playerUnits_[kHeroSlot]->shield += 10;
-    else if (name == QStringLiteral("治疗术")) heal(lowestHp(playerUnits_), 12 + (relics_.contains(QStringLiteral("圣河水滴")) ? 5 : 0));
-    else if (name == QStringLiteral("吸血")) { dealDamage(firstAlive(enemyUnits_), 10 + bonus, name); heal(playerUnits_[kHeroSlot], 10); }
+    else if (name == QStringLiteral("守护") && playerUnits_[kHeroSlot]) addShield(playerUnits_[kHeroSlot], 10, QStringLiteral("守护"));
+    else if (name == QStringLiteral("治疗术")) heal(mostWounded(playerUnits_), 12 + (relics_.contains(QStringLiteral("圣河水滴")) ? 5 : 0));
+    else if (name == QStringLiteral("吸血")) { dealDamage(firstAlive(enemyUnits_), 10 + bonus, name, skillSource); heal(playerUnits_[kHeroSlot], 10); }
     else if (name == QStringLiteral("血雾")) for (UnitInstance* e : alive(enemyUnits_)) e->base.atk = std::max(0, e->base.atk - 2);
-    else if (name == QStringLiteral("赤心爆发")) dealDamage(firstAlive(enemyUnits_), 20 + bonus, name);
+    else if (name == QStringLiteral("赤心爆发")) dealDamage(firstAlive(enemyUnits_), 20 + bonus, name, skillSource);
     else if (name == QStringLiteral("永生之血")) heal(playerUnits_[kHeroSlot], 10);
-    else if (name == QStringLiteral("精灵箭")) dealDamage(firstAlive(enemyUnits_), 8 + bonus, name);
+    else if (name == QStringLiteral("精灵箭")) dealDamage(firstAlive(enemyUnits_), 8 + bonus, name, skillSource);
     else if (name == QStringLiteral("森语祝福"))
     {
         for (UnitInstance* u : alive(playerUnits_))
@@ -439,24 +501,25 @@ void BattleEngine::castSkill(const QString& name, int chapterIndex)
             heal(u, 4);
         }
     }
-    else if (name == QStringLiteral("毒雾")) for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, 3 + bonus, name);
+    else if (name == QStringLiteral("毒雾")) for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, 3 + bonus, name, skillSource);
     else if (name == QStringLiteral("古木再生"))
     {
         int s = slotForRow(QStringLiteral("前排"), playerUnits_);
         if (s >= 0) playerUnits_[s] = createUnit({QStringLiteral("小树人"), QStringLiteral("精灵族"), QStringLiteral("前排"), QStringLiteral("斩击"), 18, 4});
     }
-    else if (name == QStringLiteral("古树根须")) { if (UnitInstance* u = lowestHp(playerUnits_)) u->shield += 15; }
+    else if (name == QStringLiteral("古树根须")) { if (UnitInstance* u = lowestHp(playerUnits_)) addShield(u, 15, QStringLiteral("古树根须")); }
     else if (name == QStringLiteral("藤蔓缠绕")) for (UnitInstance* e : alive(enemyUnits_)) e->base.atk = std::max(0, e->base.atk - 1);
     else if (name == QStringLiteral("圣光")) for (UnitInstance* u : alive(playerUnits_)) heal(u, 8 + (relics_.contains(QStringLiteral("圣河水滴")) ? 5 : 0));
-    else if (name == QStringLiteral("审判")) dealDamage(highestAtk(enemyUnits_), 25 + bonus, name);
-    else if (name == QStringLiteral("六翼庇护")) for (UnitInstance* u : alive(playerUnits_)) u->shield += 12;
+    else if (name == QStringLiteral("审判")) dealDamage(highestAtk(enemyUnits_), 25 + bonus, name, skillSource);
+    else if (name == QStringLiteral("六翼庇护")) for (UnitInstance* u : alive(playerUnits_)) addShield(u, 12, QStringLiteral("六翼庇护"));
     else if (name == QStringLiteral("命运改写") && playerUnits_[kHeroSlot]) playerUnits_[kHeroSlot]->protectedDeath = true;
     else if (name == QStringLiteral("圣河回响") && !skillSlots_.isEmpty() && skillSlots_.size() < kMaxSkills) skillSlots_.push_back(skillSlots_.last());
-    else if (name == QStringLiteral("火球")) dealDamage(firstAlive(enemyUnits_), 18 + bonus, name);
-    else if (name == QStringLiteral("深渊爪击")) dealDamage(enemyUnits_[4] ? enemyUnits_[4] : firstAlive(enemyUnits_), 22 + bonus, name);
+    else if (name == QStringLiteral("火球")) dealDamage(firstAlive(enemyUnits_), 18 + bonus, name, skillSource);
+    else if (name == QStringLiteral("深渊爪击")) dealDamage(enemyUnits_[4] ? enemyUnits_[4] : firstAlive(enemyUnits_), 22 + bonus, name, skillSource);
     else if (name == QStringLiteral("狂暴")) { if (UnitInstance* u = highestAtk(playerUnits_)) { u->base.atk += 10; u->hp -= 5; } }
     else if (name == QStringLiteral("邪神赐福")) for (UnitInstance* u : alive(playerUnits_)) u->base.atk *= 2;
-    else if (name == QStringLiteral("命运之刃")) dealDamage(firstAlive(enemyUnits_), playerUnits_[kHeroSlot] ? int(playerUnits_[kHeroSlot]->base.atk * (1.0 + chapterIndex * 0.1)) : 0, name);
+    else if (name == QStringLiteral("命运之刃")) dealDamage(firstAlive(enemyUnits_), playerUnits_[kHeroSlot] ? int(playerUnits_[kHeroSlot]->base.atk * (1.0 + chapterIndex * 0.1)) : 0, name, skillSource);
+    if (refreshCallback_) refreshCallback_();
 }
 
 // ============================================================================
@@ -465,16 +528,17 @@ void BattleEngine::castSkill(const QString& name, int chapterIndex)
 
 void BattleEngine::applyRelicsStart()
 {
+    nextEventBatch();
     for (UnitInstance* u : alive(playerUnits_))
     {
         if (relics_.contains(QStringLiteral("铁剑"))) u->base.atk += 2;
-        if (relics_.contains(QStringLiteral("旧盾")) && battleRound_ == 1) u->hp += 8;
+        if (relics_.contains(QStringLiteral("旧盾")) && battleRound_ == 1) u->hp = std::min(u->hp + 8, u->base.hp);
         if (relics_.contains(QStringLiteral("战鼓")) && battleRound_ == 1) u->base.atk += 2;
         if (relics_.contains(QStringLiteral("旅人靴")) && battleRound_ == 1) u->base.atk += 3;
         if (relics_.contains(QStringLiteral("幸运骰子")) && battleRound_ == 1 && QRandomGenerator::global()->bounded(4) == 0) u->base.atk += 5;
         if (relics_.contains(QStringLiteral("人王徽记")) && u->base.faction == QStringLiteral("人族")) u->base.atk += 4;
         if (relics_.contains(QStringLiteral("魔王残角")) && u->base.faction == QStringLiteral("魔族")) { u->base.atk += 6; u->hp -= 5; }
-        if (relics_.contains(QStringLiteral("圣洁六翼")) && battleRound_ == 1) u->shield += 20;
+        if (relics_.contains(QStringLiteral("圣洁六翼")) && battleRound_ == 1) addShield(u, 20, QStringLiteral("圣洁六翼"));
         if (relics_.contains(QStringLiteral("邪神赐福"))) { u->base.atk = int(u->base.atk * 1.5); u->hp -= 3; }
     }
     if (UnitInstance* hero = playerUnits_[kHeroSlot])
@@ -804,6 +868,7 @@ void BattleEngine::finishLevel(int chapterIndex, int levelIndex)
             appendLog(QStringLiteral("剧情角色加入：%1").arg(rescuedName));
         }
     }
+    if (refreshCallback_) refreshCallback_();
     showUnitReward();
     showRelicReward(bossRelic);
     tryFuseWorld();
@@ -1180,9 +1245,17 @@ void BattleEngine::runRound(int chapterIndex, int levelIndex)
     generateSkills();
     allAttack(playerUnits_, enemyUnits_, true);
     allAttack(enemyUnits_, playerUnits_, false);
+
+    // 先播放所有伤害/治疗动画，再处理死亡和奖励
+    if (refreshCallback_) refreshCallback_();
+
     cleanupDeaths(enemyUnits_, false);
     cleanupDeaths(playerUnits_, true);
     ++battleRound_;
+
+    // 死亡效果（复活/精灵树枝）播放完毕后再检查胜负
+    if (refreshCallback_) refreshCallback_();
+
     if (enemiesDefeated())
     {
         finishLevel(chapterIndex, levelIndex);
@@ -1191,13 +1264,13 @@ void BattleEngine::runRound(int chapterIndex, int levelIndex)
     {
         finishDefeat(chapterIndex, levelIndex);
     }
-    if (refreshCallback_) refreshCallback_();
 }
 
 /// [Recoleta37] 修复：使用成员变量 skillsUsedThisTurn_ 跟踪本回合已释放次数，
 /// 避免同一回合内多次点击按钮绕过"每回合最多2张"的限制。
 void BattleEngine::cleanupDeaths(std::array<UnitInstance*, 5>& board, bool playerSide)
 {
+    nextEventBatch();
     bool needRefill = false;
     QStringList deadRows;
     for (int i = 0; i < 5; ++i)
