@@ -174,6 +174,80 @@ void BattleEngine::clearAllUnits()
     clearBoard(enemyUnits_);
 }
 
+bool BattleEngine::removeOneRosterCard(const QString& unitName)
+{
+    for (int i = 0; i < roster_.size(); ++i)
+    {
+        if (roster_[i].name == unitName)
+        {
+            roster_.removeAt(i);
+            return true;
+        }
+    }
+    return false;
+}
+
+void BattleEngine::saveChapterSnapshot()
+{
+    auto saveBoard = [](const std::array<UnitInstance*, 5>& board, BoardSnapshot& snapshot) {
+        snapshot.present.fill(false);
+        for (int i = 0; i < 5; ++i)
+        {
+            if (board[i])
+            {
+                snapshot.units[i] = *board[i];
+                snapshot.present[i] = true;
+            }
+        }
+    };
+
+    snapshotBattleRound_ = battleRound_;
+    snapshotGold_ = gold_;
+    snapshotSkillsUsedThisTurn_ = skillsUsedThisTurn_;
+    snapshotInBattle_ = inBattle_;
+    snapshotEndingShown_ = endingShown_;
+    saveBoard(playerUnits_, snapshotPlayerUnits_);
+    saveBoard(enemyUnits_, snapshotEnemyUnits_);
+    snapshotRoster_ = roster_;
+    snapshotSkillSlots_ = skillSlots_;
+    snapshotRelics_ = relics_;
+    snapshotLogLines_ = logLines_;
+    chapterSnapshotValid_ = true;
+}
+
+void BattleEngine::restoreChapterSnapshot()
+{
+    if (!chapterSnapshotValid_)
+    {
+        return;
+    }
+
+    auto restoreBoard = [this](std::array<UnitInstance*, 5>& board, const BoardSnapshot& snapshot) {
+        clearBoard(board);
+        for (int i = 0; i < 5; ++i)
+        {
+            if (snapshot.present[i])
+            {
+                board[i] = new UnitInstance(snapshot.units[i]);
+            }
+        }
+    };
+
+    battleRound_ = snapshotBattleRound_;
+    gold_ = snapshotGold_;
+    skillsUsedThisTurn_ = snapshotSkillsUsedThisTurn_;
+    inBattle_ = snapshotInBattle_;
+    endingShown_ = snapshotEndingShown_;
+    restoreBoard(playerUnits_, snapshotPlayerUnits_);
+    restoreBoard(enemyUnits_, snapshotEnemyUnits_);
+    roster_ = snapshotRoster_;
+    skillSlots_ = snapshotSkillSlots_;
+    relics_ = snapshotRelics_;
+    logLines_ = snapshotLogLines_;
+    appendLog(QStringLiteral("已恢复到本大章节开始时的状态。"));
+    if (refreshCallback_) refreshCallback_();
+}
+
 // ============================================================================
 // Step 2: 描述表
 // ============================================================================
@@ -751,6 +825,36 @@ void BattleEngine::finishLevel(int chapterIndex, int levelIndex)
     if (refreshCallback_) refreshCallback_();
 }
 
+void BattleEngine::finishDefeat(int chapterIndex, int levelIndex)
+{
+    Q_UNUSED(chapterIndex);
+    Q_UNUSED(levelIndex);
+
+    inBattle_ = false;
+    appendLog(QStringLiteral("失败：主角倒下，本关战斗结束。"));
+    if (refreshCallback_) refreshCallback_();
+
+    QMessageBox box(parentWidget_);
+    box.setWindowTitle(QStringLiteral("战败结算"));
+    box.setText(QStringLiteral("主角已经倒下。"));
+    box.setInformativeText(QStringLiteral("选择从本大章节开始挑战，或从第一章重新开始。"));
+    QPushButton* chapterButton = box.addButton(QStringLiteral("从本大章节开始"), QMessageBox::AcceptRole);
+    QPushButton* restartButton = box.addButton(QStringLiteral("从头挑战"), QMessageBox::DestructiveRole);
+    box.setDefaultButton(chapterButton);
+    box.exec();
+
+    if (box.clickedButton() == restartButton)
+    {
+        appendLog(QStringLiteral("战败：从头挑战。"));
+        if (restartGameCallback_) restartGameCallback_();
+        return;
+    }
+
+    appendLog(QStringLiteral("战败：从本大章节开始挑战。"));
+    if (restartChapterCallback_) restartChapterCallback_();
+    else if (restartGameCallback_) restartGameCallback_();
+}
+
 void BattleEngine::showUnitReward()
 {
     QVector<UnitTemplate> pool = {
@@ -942,6 +1046,24 @@ void BattleEngine::showDeckRefillDialog(const QStringList& deadRows)
     }
 
     QVector<UnitTemplate> remaining = roster_;
+    auto removeOneRemainingCard = [&remaining](const QString& unitName) {
+        for (int i = 0; i < remaining.size(); ++i)
+        {
+            if (remaining[i].name == unitName)
+            {
+                remaining.removeAt(i);
+                return;
+            }
+        }
+    };
+    for (UnitInstance* u : playerUnits_)
+    {
+        if (u && !u->hero && u->hp > 0)
+        {
+            removeOneRemainingCard(u->base.name);
+        }
+    }
+
     auto takeRandom = [&remaining](std::function<bool(const UnitTemplate&)> predicate, UnitTemplate& out) {
         QVector<int> indexes;
         for (int i = 0; i < remaining.size(); ++i)
@@ -1067,8 +1189,7 @@ void BattleEngine::runRound(int chapterIndex, int levelIndex)
     }
     else if (playerDefeated())
     {
-        appendLog(QStringLiteral("失败：极限测试版自动重整后重试本关。"));
-        setupBattle(chapterIndex, levelIndex);
+        finishDefeat(chapterIndex, levelIndex);
     }
     if (refreshCallback_) refreshCallback_();
 }
@@ -1113,11 +1234,12 @@ void BattleEngine::cleanupDeaths(std::array<UnitInstance*, 5>& board, bool playe
         {
             needRefill = true;
             deadRows << u->base.row;
+            removeOneRosterCard(u->base.name);
         }
         delete u;
         board[i] = nullptr;
     }
-    if (needRefill)
+    if (needRefill && !(playerSide && playerDefeated()))
     {
         if (refreshCallback_) refreshCallback_();
         showDeckRefillDialog(deadRows);

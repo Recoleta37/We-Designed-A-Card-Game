@@ -37,6 +37,10 @@ private:
     /// [Recoleta37] 章节标题/地图状态留在 MainWindow，不属战斗逻辑
     int lastChapterTitleShown = -1;
     bool secondChapterAncientCityShown = false;
+    bool chapterCheckpointValid = false;
+    int checkpointChapterIndex = 0;
+    int checkpointLastChapterTitleShown = -1;
+    bool checkpointSecondChapterAncientCityShown = false;
 
     QLabel* titleLabel = nullptr;
     QLabel* progressLabel = nullptr;
@@ -95,6 +99,7 @@ private:
     /// [Recoleta37] 留在 MainWindow: 跨系统编排
     void initData();
     void startGame();
+    void restartFromChapterCheckpoint();
     void enterCurrentLevel();
     void advanceLevel();
 
