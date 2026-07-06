@@ -4,6 +4,7 @@
 #include <functional>
 
 #include <QObject>
+#include <QMap>
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -16,7 +17,7 @@ class StoryManager;
 
 /// 战斗事件 —— 供 MainWindow 消费以播放浮动数字动画
 struct CombatEvent {
-    enum Type { Damage, Heal, ShieldGain };
+    enum Type { Damage, Heal, ShieldGain, Flash };
     Type type;
     int targetIndex;   // 0-4=敌方, 5-9=己方
     int sourceIndex;   // 0-9 来源卡牌索引，-1 无来源
@@ -91,6 +92,7 @@ public:
     void saveChapterSnapshot();
     bool hasChapterSnapshot() const { return chapterSnapshotValid_; }
     void restoreChapterSnapshot();
+    void resetRunState();
 
     // ============================================================
     // Step 1: 基础层 —— 单位创建 / 棋盘查询 / 清理
@@ -180,6 +182,9 @@ public:
     /// Boss 专属机制（每回合触发）
     void bossMechanics(int chapterIndex);
 
+    /// Boss 技能说明弹窗
+    void showBossSkillIntro(const QString& bossName);
+
     /// 敌方是否全灭
     bool enemiesDefeated() const;
 
@@ -195,6 +200,9 @@ public:
 
     /// 释放指定名称的技能
     void castSkill(const QString& name, int chapterIndex);
+
+    /// 米格使用的敌方版本技能，不复用玩家技能目标
+    void castMigStolenSkill(const QString& name, int chapterIndex, UnitInstance* mig);
 
     // ============================================================
     // Step 5: 遗物系统
@@ -238,7 +246,7 @@ public:
     void finishDefeat(int chapterIndex, int levelIndex);
 
     /// 棋子奖励选择对话框
-    void showUnitReward();
+    void showUnitReward(int chapterIndex, int levelIndex, bool priced = true);
 
     /// 遗物奖励选择对话框
     void showRelicReward(const QString& fixedRelic = QString());
@@ -258,6 +266,8 @@ private:
     int battleRound_ = 1;
     int gold_ = 0;
     int skillsUsedThisTurn_ = 0;
+    int heroHpGrowth_ = 0;
+    int fateBladeHealBonus_ = 0;
     bool inBattle_ = false;
     bool endingShown_ = false;
 
@@ -267,6 +277,12 @@ private:
     QVector<UnitTemplate> roster_;
     QVector<SkillCard> skillSlots_;
     QStringList relics_;
+
+    QVector<SkillCard> migEntranceSkillSnapshot_;
+    int agniPoisonDamage_ = 2;
+    QMap<UnitInstance*, int> iyvelOriginalAtk_;
+    QStringList pendingRefillRows_;
+    int eileenNextReviveSlot_ = 1;
 
     struct BoardSnapshot
     {
@@ -278,6 +294,8 @@ private:
     int snapshotBattleRound_ = 1;
     int snapshotGold_ = 0;
     int snapshotSkillsUsedThisTurn_ = 0;
+    int snapshotHeroHpGrowth_ = 0;
+    int snapshotFateBladeHealBonus_ = 0;
     bool snapshotInBattle_ = false;
     bool snapshotEndingShown_ = false;
     BoardSnapshot snapshotPlayerUnits_;
@@ -285,6 +303,10 @@ private:
     QVector<UnitTemplate> snapshotRoster_;
     QVector<SkillCard> snapshotSkillSlots_;
     QStringList snapshotRelics_;
+    QVector<SkillCard> snapshotMigEntranceSkillSnapshot_;
+    int snapshotAgniPoisonDamage_ = 2;
+    QStringList snapshotPendingRefillRows_;
+    int snapshotEileenNextReviveSlot_ = 1;
     QStringList snapshotLogLines_;
     QStringList logLines_;
 
@@ -307,4 +329,17 @@ private:
 
     /// 根据单位指针查找棋盘卡牌索引（0-4=敌方, 5-9=己方, -1=未找到）
     int boardCardIndexOf(UnitInstance* target) const;
+
+    void queueFlash(UnitInstance* target);
+    bool isMechanicBossName(const QString& name) const;
+    UnitTemplate randomDemonTemplate() const;
+    UnitTemplate randomVampireTemplate() const;
+    int randomCardPrice() const;
+    UnitTemplate scaledRewardUnit(UnitTemplate unit, int chapterIndex, int levelIndex) const;
+    QVector<UnitTemplate> rewardPoolForRow(const QString& row, int chapterIndex) const;
+    bool shouldOfferRewards(int levelIndex) const;
+    void growAllUnitsMaxHp();
+    void growHeroAfterChapterBoss();
+    void rememberFailedRefills(const QStringList& deadRows, const QStringList& filledRows);
+    bool tryAutoFillPendingRefill(const UnitTemplate& unit);
 };
