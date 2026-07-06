@@ -596,6 +596,7 @@ void MainWindow::initData()
 
 void MainWindow::startGame()
 {
+    battleEngine.resetRunState();
     initData();
     battleEngine.endingShownRef() = false;
     lastChapterTitleShown = -1;
@@ -1043,12 +1044,24 @@ void MainWindow::animateCombatEvents()
         if (first.type == CombatEvent::Damage && first.sourceIndex >= 0)
             flashCard(first.sourceIndex);
 
+        if (first.type == CombatEvent::Flash)
+        {
+            flashCard(first.targetIndex);
+            ++i;
+            QApplication::processEvents();
+            QEventLoop loop;
+            QTimer::singleShot(250, &loop, &QEventLoop::quit);
+            loop.exec();
+            continue;
+        }
+
         int groupEnd = i;
         while (groupEnd < queue.size() &&
                queue[groupEnd].batchId == first.batchId &&
                queue[groupEnd].sourceIndex == first.sourceIndex)
         {
             const auto& e = queue[groupEnd];
+            if (e.type == CombatEvent::Flash) break;
             int idx = e.targetIndex;
             if (idx >= 0 && idx < 10)
             {

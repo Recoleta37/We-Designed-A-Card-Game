@@ -63,7 +63,7 @@ UnitTemplate BattleEngine::heroTemplate(int chapterIndex) const
     int bonus = chapterIndex * 2;
     int worldHp = relics_.contains(QStringLiteral("世界")) ? 100 : 0;
     int worldAtk = relics_.contains(QStringLiteral("世界")) ? 50 : 0;
-    return {QStringLiteral("主角"), QStringLiteral("命运"), QStringLiteral("中排"), QStringLiteral("命运之刃"), stats[idx].first + bonus + worldHp, stats[idx].second + bonus + worldAtk};
+    return {QStringLiteral("主角"), QStringLiteral("命运"), QStringLiteral("中排"), QStringLiteral("命运之刃"), stats[idx].first + bonus + worldHp + heroHpGrowth_, stats[idx].second + bonus + worldAtk};
 }
 
 UnitTemplate BattleEngine::templateByName(const QString& name) const
@@ -85,7 +85,18 @@ UnitTemplate BattleEngine::makeEnemyTemplate(const QString& name, bool boss, int
     int atk = (boss ? 13 : 6) + chapterIndex * 3 + levelIndex;
     QString row = boss ? QStringLiteral("中排") : QStringLiteral("前排");
     if (name.contains(QStringLiteral("弓")) || name.contains(QStringLiteral("术")) || name.contains(QStringLiteral("刺"))) row = QStringLiteral("后排");
-    return {name, QStringLiteral("敌人"), row, name, hp, atk};
+    if (name == QStringLiteral("偷窃者米格") && playerUnits_[kHeroSlot]) row = playerUnits_[kHeroSlot]->base.row;
+    if (name == QStringLiteral("艾琳")) row = QStringLiteral("前排");
+    QString skill = name;
+    if (name == QStringLiteral("阿拉贡")) skill = QStringLiteral("炬火·耀");
+    else if (name == QStringLiteral("偷窃者米格")) skill = QStringLiteral("偷窃 / 一无所有");
+    else if (name == QStringLiteral("吸血鬼伯爵")) skill = QStringLiteral("吸血");
+    else if (name == QStringLiteral("阿格尼")) skill = QStringLiteral("森海永恒 / 永恒毒恶");
+    else if (name == QStringLiteral("艾琳")) skill = QStringLiteral("始祖 / 血魔 / 不灭");
+    else if (name == QStringLiteral("米凯尔")) skill = QStringLiteral("神御 / 号角 / 六翼制裁");
+    else if (name == QStringLiteral("伊维尔")) skill = QStringLiteral("业火 / 魔主 / 炽焰 / 熔岩");
+    else if (name == QStringLiteral("莱索恩")) skill = QStringLiteral("四象 / 真·魔主 / 灭尽");
+    return {name, QStringLiteral("敌人"), row, skill, hp, atk};
 }
 
 // ============================================================================
@@ -221,6 +232,8 @@ void BattleEngine::saveChapterSnapshot()
     snapshotBattleRound_ = battleRound_;
     snapshotGold_ = gold_;
     snapshotSkillsUsedThisTurn_ = skillsUsedThisTurn_;
+    snapshotHeroHpGrowth_ = heroHpGrowth_;
+    snapshotFateBladeHealBonus_ = fateBladeHealBonus_;
     snapshotInBattle_ = inBattle_;
     snapshotEndingShown_ = endingShown_;
     saveBoard(playerUnits_, snapshotPlayerUnits_);
@@ -228,6 +241,10 @@ void BattleEngine::saveChapterSnapshot()
     snapshotRoster_ = roster_;
     snapshotSkillSlots_ = skillSlots_;
     snapshotRelics_ = relics_;
+    snapshotMigEntranceSkillSnapshot_ = migEntranceSkillSnapshot_;
+    snapshotAgniPoisonDamage_ = agniPoisonDamage_;
+    snapshotPendingRefillRows_ = pendingRefillRows_;
+    snapshotEileenNextReviveSlot_ = eileenNextReviveSlot_;
     snapshotLogLines_ = logLines_;
     chapterSnapshotValid_ = true;
 }
@@ -253,6 +270,8 @@ void BattleEngine::restoreChapterSnapshot()
     battleRound_ = snapshotBattleRound_;
     gold_ = snapshotGold_;
     skillsUsedThisTurn_ = snapshotSkillsUsedThisTurn_;
+    heroHpGrowth_ = snapshotHeroHpGrowth_;
+    fateBladeHealBonus_ = snapshotFateBladeHealBonus_;
     inBattle_ = snapshotInBattle_;
     endingShown_ = snapshotEndingShown_;
     restoreBoard(playerUnits_, snapshotPlayerUnits_);
@@ -260,9 +279,34 @@ void BattleEngine::restoreChapterSnapshot()
     roster_ = snapshotRoster_;
     skillSlots_ = snapshotSkillSlots_;
     relics_ = snapshotRelics_;
+    migEntranceSkillSnapshot_ = snapshotMigEntranceSkillSnapshot_;
+    agniPoisonDamage_ = snapshotAgniPoisonDamage_;
+    pendingRefillRows_ = snapshotPendingRefillRows_;
+    eileenNextReviveSlot_ = snapshotEileenNextReviveSlot_;
+    iyvelOriginalAtk_.clear();
     logLines_ = snapshotLogLines_;
     appendLog(QStringLiteral("已恢复到本大章节开始时的状态。"));
     if (refreshCallback_) refreshCallback_();
+}
+
+void BattleEngine::resetRunState()
+{
+    battleRound_ = 1;
+    gold_ = 0;
+    skillsUsedThisTurn_ = 0;
+    heroHpGrowth_ = 0;
+    fateBladeHealBonus_ = 0;
+    inBattle_ = false;
+    endingShown_ = false;
+    chapterSnapshotValid_ = false;
+    migEntranceSkillSnapshot_.clear();
+    agniPoisonDamage_ = 2;
+    iyvelOriginalAtk_.clear();
+    eileenNextReviveSlot_ = 1;
+    pendingRefillRows_.clear();
+    eileenNextReviveSlot_ = 1;
+    pendingCombatEvents_.clear();
+    eventBatchId_ = 0;
 }
 
 // ============================================================================
@@ -311,7 +355,7 @@ QString BattleEngine::skillDescription(const QString& skill) const
         {QStringLiteral("精灵箭"), QStringLiteral("造成8点伤害")},
         {QStringLiteral("森语祝福"), QStringLiteral("全体友军攻击+2并治疗4点")},
         {QStringLiteral("毒雾"), QStringLiteral("敌方全体受到3点伤害")},
-        {QStringLiteral("古木再生"), QStringLiteral("召唤一个小树人")},
+        {QStringLiteral("古木再生"), QStringLiteral("治疗双方受伤最重单位25点")},
         {QStringLiteral("古树根须"), QStringLiteral("最低血友军获得15护盾")},
         {QStringLiteral("藤蔓缠绕"), QStringLiteral("所有敌人攻击-1")},
         {QStringLiteral("圣光"), QStringLiteral("治疗全体友军8点")},
@@ -324,7 +368,7 @@ QString BattleEngine::skillDescription(const QString& skill) const
         {QStringLiteral("狂暴"), QStringLiteral("最高攻击友军攻击+10，生命-5")},
         {QStringLiteral("魔焰"), QStringLiteral("敌方全体受到10点伤害")},
         {QStringLiteral("邪神赐福"), QStringLiteral("本回合所有友军攻击翻倍")},
-        {QStringLiteral("命运之刃"), QStringLiteral("造成主角攻击力伤害，每章额外+10%")}
+        {QStringLiteral("命运之刃"), QStringLiteral("造成主角攻击力伤害，并治疗全体友军")}
     };
     return descriptions.value(skill, QStringLiteral("未登记技能效果"));
 }
@@ -356,9 +400,199 @@ int BattleEngine::boardCardIndexOf(UnitInstance* target) const
     return -1;
 }
 
+void BattleEngine::queueFlash(UnitInstance* target)
+{
+    int idx = boardCardIndexOf(target);
+    if (idx >= 0) pendingCombatEvents_.push_back({CombatEvent::Flash, idx, -1, 0, eventBatchId_});
+}
+
+bool BattleEngine::isMechanicBossName(const QString& name) const
+{
+    static const QStringList bosses = {
+        QStringLiteral("阿拉贡"),
+        QStringLiteral("吸血鬼伯爵"),
+        QStringLiteral("偷窃者米格"),
+        QStringLiteral("艾琳"),
+        QStringLiteral("阿格尼"),
+        QStringLiteral("米凯尔"),
+        QStringLiteral("伊维尔"),
+        QStringLiteral("莱索恩")
+    };
+    return bosses.contains(name);
+}
+
+UnitTemplate BattleEngine::randomDemonTemplate() const
+{
+    QVector<UnitTemplate> demons = {
+        {QStringLiteral("小恶魔"), QStringLiteral("魔族"), QStringLiteral("前排"), QStringLiteral("斩击"), 38, 8},
+        {QStringLiteral("魔族战士"), QStringLiteral("魔族"), QStringLiteral("前排"), QStringLiteral("狂暴"), 48, 10},
+        {QStringLiteral("火焰术士"), QStringLiteral("魔族"), QStringLiteral("中排"), QStringLiteral("魔焰"), 36, 13},
+        {QStringLiteral("深渊刺客"), QStringLiteral("魔族"), QStringLiteral("后排"), QStringLiteral("深渊爪击"), 32, 16}
+    };
+    return demons[QRandomGenerator::global()->bounded(demons.size())];
+}
+
+UnitTemplate BattleEngine::randomVampireTemplate() const
+{
+    QVector<UnitTemplate> vampires = {
+        {QStringLiteral("血仆"), QStringLiteral("吸血鬼"), QStringLiteral("前排"), QStringLiteral("吸血"), 40, 8},
+        {QStringLiteral("血术师"), QStringLiteral("吸血鬼"), QStringLiteral("中排"), QStringLiteral("赤心爆发"), 34, 10},
+        {QStringLiteral("夜行者"), QStringLiteral("吸血鬼"), QStringLiteral("后排"), QStringLiteral("吸血"), 30, 13},
+        {QStringLiteral("血卫"), QStringLiteral("吸血鬼"), QStringLiteral("前排"), QStringLiteral("永生之血"), 52, 6}
+    };
+    return vampires[QRandomGenerator::global()->bounded(vampires.size())];
+}
+
+int BattleEngine::randomCardPrice() const
+{
+    static const QVector<int> weighted = {3, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 10};
+    return weighted[QRandomGenerator::global()->bounded(weighted.size())];
+}
+
+UnitTemplate BattleEngine::scaledRewardUnit(UnitTemplate unit, int chapterIndex, int levelIndex) const
+{
+    const int chapterHp = chapterIndex * 12;
+    const int levelHp = std::max(0, levelIndex - 1) * 3;
+    const int chapterAtk = chapterIndex * 3;
+    const int levelAtk = std::max(0, levelIndex - 1) / 2;
+    unit.hp += chapterHp + levelHp;
+    unit.atk += chapterAtk + levelAtk;
+
+    if (levelIndex >= 9)
+    {
+        unit.hp += 8;
+        unit.atk += 2;
+    }
+    if (chapterIndex >= 6)
+    {
+        unit.hp += 10;
+        unit.atk += 2;
+    }
+    return unit;
+}
+
+QVector<UnitTemplate> BattleEngine::rewardPoolForRow(const QString& row, int chapterIndex) const
+{
+    QVector<UnitTemplate> pool = {
+        {QStringLiteral("见习剑士"), QStringLiteral("人族"), QStringLiteral("前排"), QStringLiteral("斩击"), 42, 7},
+        {QStringLiteral("盾卫"), QStringLiteral("人族"), QStringLiteral("前排"), QStringLiteral("守护"), 58, 4},
+        {QStringLiteral("血仆"), QStringLiteral("吸血鬼"), QStringLiteral("前排"), QStringLiteral("吸血"), 40, 8},
+        {QStringLiteral("守护天使"), QStringLiteral("天使"), QStringLiteral("前排"), QStringLiteral("六翼庇护"), 60, 6},
+        {QStringLiteral("魔族战士"), QStringLiteral("魔族"), QStringLiteral("前排"), QStringLiteral("狂暴"), 54, 9},
+        {QStringLiteral("古木守卫"), QStringLiteral("精灵族"), QStringLiteral("前排"), QStringLiteral("古木再生"), 62, 5},
+
+        {QStringLiteral("牧师"), QStringLiteral("人族"), QStringLiteral("中排"), QStringLiteral("治疗术"), 32, 5},
+        {QStringLiteral("血术师"), QStringLiteral("吸血鬼"), QStringLiteral("中排"), QStringLiteral("赤心爆发"), 34, 10},
+        {QStringLiteral("毒叶法师"), QStringLiteral("精灵族"), QStringLiteral("中排"), QStringLiteral("毒雾"), 35, 9},
+        {QStringLiteral("圣光侍从"), QStringLiteral("天使"), QStringLiteral("中排"), QStringLiteral("圣光"), 38, 6},
+        {QStringLiteral("圣河少女"), QStringLiteral("天使"), QStringLiteral("中排"), QStringLiteral("圣河回响"), 36, 7},
+        {QStringLiteral("火焰术士"), QStringLiteral("魔族"), QStringLiteral("中排"), QStringLiteral("魔焰"), 36, 13},
+
+        {QStringLiteral("弓箭手"), QStringLiteral("人族"), QStringLiteral("后排"), QStringLiteral("箭雨"), 28, 11},
+        {QStringLiteral("夜行者"), QStringLiteral("吸血鬼"), QStringLiteral("后排"), QStringLiteral("吸血"), 30, 13},
+        {QStringLiteral("精灵射手"), QStringLiteral("精灵族"), QStringLiteral("后排"), QStringLiteral("精灵箭"), 32, 12},
+        {QStringLiteral("审判者"), QStringLiteral("天使"), QStringLiteral("后排"), QStringLiteral("审判"), 34, 14},
+        {QStringLiteral("小恶魔"), QStringLiteral("魔族"), QStringLiteral("后排"), QStringLiteral("火球"), 30, 15},
+        {QStringLiteral("深渊刺客"), QStringLiteral("魔族"), QStringLiteral("后排"), QStringLiteral("深渊爪击"), 32, 16}
+    };
+
+    QString preferredFaction;
+    if (chapterIndex <= 1) preferredFaction = QStringLiteral("人族");
+    else if (chapterIndex <= 3) preferredFaction = QStringLiteral("吸血鬼");
+    else if (chapterIndex == 4) preferredFaction = QStringLiteral("精灵族");
+    else if (chapterIndex == 5) preferredFaction = QStringLiteral("天使");
+    else if (chapterIndex <= 7) preferredFaction = QStringLiteral("魔族");
+
+    QVector<UnitTemplate> filtered;
+    for (const UnitTemplate& t : pool)
+    {
+        if (t.row != row) continue;
+        filtered << t;
+        if (!preferredFaction.isEmpty() && t.faction == preferredFaction)
+        {
+            filtered << t;
+            filtered << t;
+        }
+    }
+    return filtered;
+}
+
+bool BattleEngine::shouldOfferRewards(int levelIndex) const
+{
+    return levelIndex == 3 || levelIndex == 6 || levelIndex == 9 || levelIndex == 10;
+}
+
+void BattleEngine::growAllUnitsMaxHp()
+{
+    nextEventBatch();
+    for (UnitInstance* u : alive(playerUnits_))
+    {
+        ++u->base.hp;
+        ++u->hp;
+    }
+    for (UnitInstance* u : alive(enemyUnits_))
+    {
+        ++u->base.hp;
+        ++u->hp;
+    }
+    appendLog(QStringLiteral("回合结算：所有在场棋子生命上限+1。"));
+}
+
+void BattleEngine::growHeroAfterChapterBoss()
+{
+    heroHpGrowth_ += 10;
+    fateBladeHealBonus_ += 2;
+    if (UnitInstance* hero = playerUnits_[kHeroSlot])
+    {
+        hero->base.hp += 10;
+        hero->hp += 10;
+        appendLog(QStringLiteral("章节Boss战结束：主角生命上限与生命值+10，命运之刃治疗量+2。"));
+    }
+}
+
+void BattleEngine::rememberFailedRefills(const QStringList& deadRows, const QStringList& filledRows)
+{
+    QStringList remainingFilled = filledRows;
+    for (const QString& row : deadRows)
+    {
+        const int filledIndex = remainingFilled.indexOf(row);
+        if (filledIndex >= 0)
+        {
+            remainingFilled.removeAt(filledIndex);
+            continue;
+        }
+        if (hasEmptySlotForRow(row))
+        {
+            pendingRefillRows_ << row;
+            appendLog(QStringLiteral("补员暂缺：%1没有合适棋子，之后买入同排棋子会自动上场。").arg(row));
+        }
+    }
+}
+
+bool BattleEngine::tryAutoFillPendingRefill(const UnitTemplate& unit)
+{
+    int pendingIndex = pendingRefillRows_.indexOf(unit.row);
+    if (pendingIndex < 0) return false;
+    int slot = slotForRow(unit.row, playerUnits_);
+    if (slot < 0 || playerUnits_[slot] != nullptr) return false;
+
+    playerUnits_[slot] = createUnit(unit, false, false);
+    pendingRefillRows_.removeAt(pendingIndex);
+    appendLog(QStringLiteral("自动补员：%1填补了%2空位。").arg(unit.name, unit.row));
+    queueFlash(playerUnits_[slot]);
+    if (refreshCallback_) refreshCallback_();
+    return true;
+}
+
 void BattleEngine::dealDamage(UnitInstance* target, int amount, const QString& reason, UnitInstance* source)
 {
     if (!target || amount <= 0) return;
+    if (target->boss && target->base.name == QStringLiteral("米凯尔") && battleRound_ % 6 != 0)
+    {
+        queueFlash(target);
+        appendLog(QStringLiteral("绝对存续的圣洁神御：米凯尔没有受到伤害。"));
+        return;
+    }
     int shieldHit = std::min(target->shield, amount);
     target->shield -= shieldHit;
     int hpDmg = amount - shieldHit;
@@ -415,21 +649,169 @@ void BattleEngine::bossMechanics(int chapterIndex)
     {
         if (!boss->boss) continue;
         QString n = boss->base.name;
-        if (n == QStringLiteral("阿拉贡") && battleRound_ % 3 == 0) for (UnitInstance* e : alive(enemyUnits_)) e->base.atk += 3;
-        else if (n == QStringLiteral("吸血鬼伯爵")) heal(boss, 8);
-        else if (n == QStringLiteral("偷窃者米格") && !skillSlots_.isEmpty()) castSkill(skillSlots_[QRandomGenerator::global()->bounded(skillSlots_.size())].name, chapterIndex);
-        else if (n == QStringLiteral("艾琳")) heal(boss, 12);
-        else if (n == QStringLiteral("阿格尼")) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p,3, QStringLiteral("精灵王威压"), boss);
-        else if (n == QStringLiteral("米凯尔") && battleRound_ % 3 == 0) dealDamage(highestAtk(playerUnits_), 28, QStringLiteral("六翼审判"), boss);
-        else if (n == QStringLiteral("伊维尔")) boss->base.atk += 3;
+        if (n == QStringLiteral("阿拉贡"))
+        {
+            boss->base.atk += 2;
+            queueFlash(boss);
+            appendLog(QStringLiteral("炬火·耀：阿拉贡自身攻击+2。"));
+            if (battleRound_ % 3 == 0)
+            {
+                for (UnitInstance* e : alive(enemyUnits_))
+                {
+                    e->base.atk += 3;
+                    queueFlash(e);
+                }
+                appendLog(QStringLiteral("炬火·耀：敌方全体攻击+3。"));
+            }
+        }
+        else if (n == QStringLiteral("吸血鬼伯爵"))
+        {
+            UnitInstance* target = firstAlive(playerUnits_);
+            int before = target ? target->hp : 0;
+            dealDamage(target, 10, QStringLiteral("吸血"), boss);
+            if (target && target->hp < before) heal(boss, before - target->hp);
+        }
+        else if (n == QStringLiteral("偷窃者米格"))
+        {
+            if (battleRound_ % 3 == 0)
+            {
+                QVector<UnitInstance*> candidates;
+                for (UnitInstance* p : alive(playerUnits_))
+                {
+                    if (p->hero) continue;
+                    if (slotForRow(p->base.row, enemyUnits_) >= 0) candidates << p;
+                }
+                if (!candidates.isEmpty())
+                {
+                    UnitInstance* stolen = candidates[QRandomGenerator::global()->bounded(candidates.size())];
+                    UnitTemplate copy = stolen->base;
+                    copy.name = QStringLiteral("偷来的") + copy.name;
+                    copy.atk += 2;
+                    int s = slotForRow(copy.row, enemyUnits_);
+                    if (s >= 0)
+                    {
+                        enemyUnits_[s] = createUnit(copy, false, false);
+                        enemyUnits_[s]->hp = std::max(1, std::min(stolen->hp, enemyUnits_[s]->base.hp));
+                        queueFlash(enemyUnits_[s]);
+                        appendLog(QStringLiteral("偷窃：米格偷来了 %1。").arg(stolen->base.name));
+                        for (UnitInstance*& p : playerUnits_)
+                        {
+                            if (p == stolen)
+                            {
+                                delete p;
+                                p = nullptr;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (!migEntranceSkillSnapshot_.isEmpty())
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                    const SkillCard sk = migEntranceSkillSnapshot_[QRandomGenerator::global()->bounded(migEntranceSkillSnapshot_.size())];
+                    castMigStolenSkill(sk.name, chapterIndex, boss);
+                }
+            }
+        }
+        else if (n == QStringLiteral("艾琳"))
+        {
+            if (battleRound_ % 4 == 0)
+            {
+                for (int i = 0; i < 2; ++i)
+                {
+                    UnitTemplate t = randomVampireTemplate();
+                    int s = slotForRow(t.row, enemyUnits_);
+                    if (s >= 0)
+                    {
+                        enemyUnits_[s] = createUnit(t, false, false);
+                        queueFlash(enemyUnits_[s]);
+                    }
+                }
+                appendLog(QStringLiteral("始祖：艾琳召唤吸血鬼眷属。"));
+            }
+            heal(boss, 12);
+            for (int frontSlot : {0, 1})
+            {
+                if (playerUnits_[frontSlot] && playerUnits_[frontSlot]->hp > 0)
+                {
+                    dealDamage(playerUnits_[frontSlot], 12, QStringLiteral("血魔"), boss);
+                }
+            }
+            appendLog(QStringLiteral("血魔：艾琳治疗自身并撕裂玩家前排。"));
+        }
+        else if (n == QStringLiteral("阿格尼"))
+        {
+            for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, agniPoisonDamage_, QStringLiteral("永恒毒恶"), boss);
+            appendLog(QStringLiteral("永恒毒恶：本回合造成%1点伤害。").arg(agniPoisonDamage_));
+            agniPoisonDamage_ += 2;
+        }
+        else if (n == QStringLiteral("米凯尔") && battleRound_ % 3 == 0)
+        {
+            appendLog(QStringLiteral("米凯尔在合唱团吹奏号角。"));
+            dealDamage(highestAtk(playerUnits_), 20, QStringLiteral("永恒燃烧的六翼制裁"), boss);
+        }
+        else if (n == QStringLiteral("伊维尔"))
+        {
+            for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 2, QStringLiteral("业火"), boss);
+            if (battleRound_ % 4 == 0)
+            {
+                for (int i = 0; i < 2; ++i)
+                {
+                    UnitTemplate t = randomDemonTemplate();
+                    int s = slotForRow(t.row, enemyUnits_);
+                    if (s >= 0)
+                    {
+                        enemyUnits_[s] = createUnit(t, false, false);
+                        queueFlash(enemyUnits_[s]);
+                    }
+                }
+                appendLog(QStringLiteral("魔主：伊维尔召唤魔族棋子。"));
+            }
+            for (UnitInstance* p : alive(playerUnits_))
+            {
+                if (!iyvelOriginalAtk_.contains(p)) iyvelOriginalAtk_[p] = p->base.atk;
+                const int originalAtk = iyvelOriginalAtk_[p];
+                if (p->base.atk * 2 >= originalAtk)
+                {
+                    p->base.atk = std::max(0, p->base.atk - 1);
+                    queueFlash(p);
+                }
+            }
+            boss->base.atk += 3;
+            queueFlash(boss);
+            appendLog(QStringLiteral("熔岩：伊维尔攻击+3。"));
+        }
         else if (n == QStringLiteral("莱索恩"))
         {
             int roll = QRandomGenerator::global()->bounded(4);
-            if (roll == 0) addShield(boss, 20, QStringLiteral("莱索恩"));
+            if (roll == 0) addShield(boss, 20, QStringLiteral("四象"));
             if (roll == 1) heal(boss, 10);
             if (roll == 2) boss->base.atk *= 2;
-            if (roll == 3) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 4, QStringLiteral("邪神诅咒"), boss);
-            if (boss->hp < boss->base.hp * 0.3) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 5, QStringLiteral("终焉阶段"), boss);
+            if (roll == 3) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 4, QStringLiteral("四象"), boss);
+            queueFlash(boss);
+            if (battleRound_ % 4 == 0)
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                    UnitTemplate t = randomDemonTemplate();
+                    int s = slotForRow(t.row, enemyUnits_);
+                    if (s >= 0)
+                    {
+                        enemyUnits_[s] = createUnit(t, false, false);
+                        queueFlash(enemyUnits_[s]);
+                    }
+                }
+                appendLog(QStringLiteral("真·魔主：莱索恩召唤魔族棋子。"));
+            }
+            for (UnitInstance* p : alive(playerUnits_))
+            {
+                if (!p->hero && p->aliveRounds >= 12)
+                {
+                    dealDamage(p, p->hp + p->shield, QStringLiteral("灭尽"), boss);
+                }
+            }
         }
     }
     if (refreshCallback_) refreshCallback_();
@@ -504,8 +886,8 @@ void BattleEngine::castSkill(const QString& name, int chapterIndex)
     else if (name == QStringLiteral("毒雾")) for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, 3 + bonus, name, skillSource);
     else if (name == QStringLiteral("古木再生"))
     {
-        int s = slotForRow(QStringLiteral("前排"), playerUnits_);
-        if (s >= 0) playerUnits_[s] = createUnit({QStringLiteral("小树人"), QStringLiteral("精灵族"), QStringLiteral("前排"), QStringLiteral("斩击"), 18, 4});
+        heal(mostWounded(playerUnits_), 25);
+        heal(mostWounded(enemyUnits_), 25);
     }
     else if (name == QStringLiteral("古树根须")) { if (UnitInstance* u = lowestHp(playerUnits_)) addShield(u, 15, QStringLiteral("古树根须")); }
     else if (name == QStringLiteral("藤蔓缠绕")) for (UnitInstance* e : alive(enemyUnits_)) e->base.atk = std::max(0, e->base.atk - 1);
@@ -518,8 +900,115 @@ void BattleEngine::castSkill(const QString& name, int chapterIndex)
     else if (name == QStringLiteral("深渊爪击")) dealDamage(enemyUnits_[4] ? enemyUnits_[4] : firstAlive(enemyUnits_), 22 + bonus, name, skillSource);
     else if (name == QStringLiteral("狂暴")) { if (UnitInstance* u = highestAtk(playerUnits_)) { u->base.atk += 10; u->hp -= 5; } }
     else if (name == QStringLiteral("邪神赐福")) for (UnitInstance* u : alive(playerUnits_)) u->base.atk *= 2;
-    else if (name == QStringLiteral("命运之刃")) dealDamage(firstAlive(enemyUnits_), playerUnits_[kHeroSlot] ? int(playerUnits_[kHeroSlot]->base.atk * (1.0 + chapterIndex * 0.1)) : 0, name, skillSource);
+    else if (name == QStringLiteral("命运之刃"))
+    {
+        dealDamage(firstAlive(enemyUnits_), playerUnits_[kHeroSlot] ? int(playerUnits_[kHeroSlot]->base.atk * (1.0 + chapterIndex * 0.1)) : 0, name, skillSource);
+        const int healAmount = 5 + fateBladeHealBonus_;
+        for (UnitInstance* u : alive(playerUnits_)) heal(u, healAmount);
+    }
     if (refreshCallback_) refreshCallback_();
+}
+
+void BattleEngine::castMigStolenSkill(const QString& name, int chapterIndex, UnitInstance* mig)
+{
+    Q_UNUSED(chapterIndex);
+    if (!mig) return;
+    nextEventBatch();
+    queueFlash(mig);
+    appendLog(QStringLiteral("一无所有：米格使用了 %1。").arg(name));
+
+    if (name == QStringLiteral("斩击")) dealDamage(firstAlive(playerUnits_), 8, name, mig);
+    else if (name == QStringLiteral("箭雨") || name == QStringLiteral("魔焰"))
+    {
+        const int amount = name == QStringLiteral("箭雨") ? 4 : 10;
+        for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, amount, name, mig);
+    }
+    else if (name == QStringLiteral("鼓舞")) for (UnitInstance* e : alive(enemyUnits_)) { e->base.atk += 2; queueFlash(e); }
+    else if (name == QStringLiteral("守护")) addShield(mig, 10, QStringLiteral("守护"));
+    else if (name == QStringLiteral("治疗术")) heal(mostWounded(enemyUnits_), 12);
+    else if (name == QStringLiteral("吸血")) { UnitInstance* target = firstAlive(playerUnits_); int before = target ? target->hp : 0; dealDamage(target, 10, name, mig); if (target && target->hp < before) heal(mig, before - target->hp); }
+    else if (name == QStringLiteral("血雾")) for (UnitInstance* p : alive(playerUnits_)) { p->base.atk = std::max(0, p->base.atk - 2); queueFlash(p); }
+    else if (name == QStringLiteral("赤心爆发")) dealDamage(firstAlive(playerUnits_), 20, name, mig);
+    else if (name == QStringLiteral("永生之血")) heal(mig, 10);
+    else if (name == QStringLiteral("精灵箭")) dealDamage(firstAlive(playerUnits_), 8, name, mig);
+    else if (name == QStringLiteral("森语祝福"))
+    {
+        for (UnitInstance* e : alive(enemyUnits_))
+        {
+            e->base.atk += 2;
+            heal(e, 4);
+            queueFlash(e);
+        }
+    }
+    else if (name == QStringLiteral("毒雾")) for (UnitInstance* p : alive(playerUnits_)) dealDamage(p, 3, name, mig);
+    else if (name == QStringLiteral("古木再生"))
+    {
+        heal(mostWounded(enemyUnits_), 25);
+        heal(mostWounded(playerUnits_), 25);
+    }
+    else if (name == QStringLiteral("古树根须")) addShield(lowestHp(enemyUnits_), 15, QStringLiteral("古树根须"));
+    else if (name == QStringLiteral("藤蔓缠绕")) for (UnitInstance* p : alive(playerUnits_)) { p->base.atk = std::max(0, p->base.atk - 1); queueFlash(p); }
+    else if (name == QStringLiteral("圣光")) for (UnitInstance* e : alive(enemyUnits_)) heal(e, 8);
+    else if (name == QStringLiteral("审判")) dealDamage(highestAtk(playerUnits_), 25, name, mig);
+    else if (name == QStringLiteral("六翼庇护")) for (UnitInstance* e : alive(enemyUnits_)) addShield(e, 12, QStringLiteral("六翼庇护"));
+    else if (name == QStringLiteral("命运改写")) mig->protectedDeath = true;
+    else if (name == QStringLiteral("圣河回响")) castMigStolenSkill(QStringLiteral("圣光"), chapterIndex, mig);
+    else if (name == QStringLiteral("火球")) dealDamage(firstAlive(playerUnits_), 18, name, mig);
+    else if (name == QStringLiteral("深渊爪击")) dealDamage(playerUnits_[4] ? playerUnits_[4] : firstAlive(playerUnits_), 22, name, mig);
+    else if (name == QStringLiteral("狂暴")) { mig->base.atk += 10; mig->hp -= 5; queueFlash(mig); }
+    else if (name == QStringLiteral("邪神赐福")) for (UnitInstance* e : alive(enemyUnits_)) { e->base.atk *= 2; queueFlash(e); }
+    else if (name == QStringLiteral("命运之刃")) dealDamage(firstAlive(playerUnits_), mig->base.atk, name, mig);
+
+    if (refreshCallback_) refreshCallback_();
+}
+
+void BattleEngine::showBossSkillIntro(const QString& bossName)
+{
+    QStringList lines;
+    if (bossName == QStringLiteral("阿拉贡"))
+        lines << QStringLiteral("炬火·耀：炬火照耀王旗，敌军将随回合逐渐昂扬。");
+    else if (bossName == QStringLiteral("偷窃者米格"))
+        lines << QStringLiteral("偷窃：每隔数回合窃走棋盘上的影子。")
+              << QStringLiteral("一无所有：他记住你入场时拥有的技能，并反过来使用它们。");
+    else if (bossName == QStringLiteral("吸血鬼伯爵"))
+        lines << QStringLiteral("吸血：伯爵会以伤害汲取生命。");
+    else if (bossName == QStringLiteral("阿格尼"))
+        lines << QStringLiteral("森海永恒：死亡并不是终点。")
+              << QStringLiteral("永恒毒恶：森林的恶意会逐回合变得浓烈。");
+    else if (bossName == QStringLiteral("米凯尔"))
+        lines << QStringLiteral("绝对存续的圣洁神御\n神御隔绝大多数伤害，唯有特定回合能够触及她。")
+              << QStringLiteral("米凯尔在合唱团吹奏号角\n号角响起时，战场会被迫聆听。")
+              << QStringLiteral("永恒燃烧的六翼制裁\n审判会周期性降下。");
+    else if (bossName == QStringLiteral("伊维尔"))
+        lines << QStringLiteral("业火：魔焰每回合灼烧玩家方。")
+              << QStringLiteral("魔主：魔族会回应召唤。")
+              << QStringLiteral("炽焰：友方锋芒会被逐渐熔去。")
+              << QStringLiteral("熔岩：伊维尔会持续积蓄力量。");
+    else if (bossName == QStringLiteral("莱索恩"))
+        lines << QStringLiteral("四象：命运从四种征兆中翻涌。")
+              << QStringLiteral("真·魔主：更深的魔族会被召来。")
+              << QStringLiteral("灭尽：久存者会被终焉点名。");
+    else
+        return;
+
+    QDialog dialog(parentWidget_);
+    dialog.setWindowTitle(QStringLiteral("%1 的技能").arg(bossName));
+    dialog.setMinimumWidth(bossName == QStringLiteral("米凯尔") ? 520 : 440);
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+    QLabel* title = new QLabel(bossName);
+    title->setAlignment(Qt::AlignCenter);
+    title->setObjectName(QStringLiteral("skillNameLabel"));
+    layout->addWidget(title);
+    for (const QString& line : lines)
+    {
+        QLabel* label = smallLabel(line);
+        label->setAlignment(line.contains(QLatin1Char('\n')) ? Qt::AlignCenter : Qt::AlignLeft);
+        layout->addWidget(label);
+    }
+    QPushButton* ok = new QPushButton(QStringLiteral("进入战斗"));
+    layout->addWidget(ok, 0, Qt::AlignCenter);
+    connect(ok, &QPushButton::clicked, &dialog, &QDialog::accept);
+    dialog.exec();
 }
 
 // ============================================================================
@@ -555,6 +1044,22 @@ void BattleEngine::applyRelicsStart()
 void BattleEngine::addRelic(const QString& relic)
 {
     if (relic.isEmpty()) return;
+    static const QMap<QString, int> storyRelicSlots = {
+        {QStringLiteral("跃动赤心"), 0},
+        {QStringLiteral("精灵王冠"), 1},
+        {QStringLiteral("圣洁六翼"), 2},
+        {QStringLiteral("邪神赐福"), 3}
+    };
+    if (storyRelicSlots.contains(relic))
+    {
+        const int slot = storyRelicSlots.value(relic);
+        while (relics_.size() <= slot) relics_ << QString();
+        relics_[slot] = relic;
+        relics_.removeAll(QString());
+        logLines_ << QStringLiteral("剧情遗物固定进入%1号槽：%2").arg(slot + 1).arg(relic);
+        while (logLines_.size() > 80) logLines_.removeFirst();
+        return;
+    }
     if (relics_.contains(relic))
     {
         logLines_ << QStringLiteral("已拥有遗物：%1").arg(relic);
@@ -635,13 +1140,10 @@ void BattleEngine::tryFuseWorld()
         if (!relics_.contains(n)) return;
     }
     if (relics_.contains(QStringLiteral("世界"))) return;
-    for (const QString& n : needed)
-    {
-        relics_.removeAll(n);
-    }
+    relics_.clear();
+    relics_ << QStringLiteral("世界");
     logLines_ << QStringLiteral("四件剧情遗物融合为：世界");
     while (logLines_.size() > 80) logLines_.removeFirst();
-    addRelic(QStringLiteral("世界"));
 }
 
 // ============================================================================
@@ -652,6 +1154,9 @@ void BattleEngine::setupBattle(int chapterIndex, int levelIndex)
 {
     clearBoard(enemyUnits_);
     preparePlayerForBattle(chapterIndex);
+    migEntranceSkillSnapshot_.clear();
+    agniPoisonDamage_ = 2;
+    iyvelOriginalAtk_.clear();
 
     ChapterDef c = chapters()[chapterIndex];
     QString enemyName;
@@ -661,49 +1166,56 @@ void BattleEngine::setupBattle(int chapterIndex, int levelIndex)
     else if (levelIndex == 9) enemyName = c.elite9;
     else if (levelIndex == 10) enemyName = c.boss10;
     else enemyName = c.normalEnemies[(levelIndex + chapterIndex) % c.normalEnemies.size()];
-    boss = isUniqueBossName(enemyName);
+    boss = levelIndex == 5 || levelIndex == 10 || isMechanicBossName(enemyName);
 
     // [Recoleta37] 主敌人也使用模板自身的 row，不再硬编码（如"血术师"含"术"应去后排）
     UnitTemplate mainT = makeEnemyTemplate(enemyName, boss, chapterIndex, levelIndex);
+    const bool minorLevel = levelIndex != 5 && levelIndex != 10;
+    if (!boss && minorLevel && chapterIndex >= 3)
+    {
+        mainT.hp += chapterIndex * 4 + levelIndex * 2;
+        mainT.atk += 1 + chapterIndex / 2;
+    }
     int mainSlot = slotForRow(mainT.row, enemyUnits_);
     if (mainSlot >= 0)
     {
         enemyUnits_[mainSlot] = createUnit(mainT, false, boss);
     }
     // 额外敌人只允许进入模板对应排；超额放不下则按生成顺序忽略。
-    auto placeExtraEnemy = [this](const UnitTemplate& t) {
+    auto placeExtraEnemy = [this, chapterIndex, levelIndex](UnitTemplate t) {
+        if (levelIndex != 5 && levelIndex != 10 && chapterIndex >= 3)
+        {
+            t.hp += chapterIndex * 4 + levelIndex * 2;
+            t.atk += 1 + chapterIndex / 2;
+        }
         int s = slotForRow(t.row, enemyUnits_);
         if (s >= 0) enemyUnits_[s] = createUnit(t, false, false);
         else appendLog(QStringLiteral("敌人未入场（%1已满）：%2").arg(t.row, t.name));
     };
-    if (levelIndex >= 6)
+
+    int targetEnemyCount = 1;
+    if (levelIndex == 10)
     {
-        placeExtraEnemy(makeEnemyTemplate(c.normalEnemies[(levelIndex + 1) % c.normalEnemies.size()], false, chapterIndex, levelIndex));
+        targetEnemyCount = 4;
     }
-    if (levelIndex >= 9)
+    else
     {
-        placeExtraEnemy(makeEnemyTemplate(c.normalEnemies[(levelIndex + 2) % c.normalEnemies.size()], false, chapterIndex, levelIndex));
+        int roll = QRandomGenerator::global()->bounded(10);
+        if (roll < 3) targetEnemyCount = 3;
+        else if (roll < 8) targetEnemyCount = 4;
+        else targetEnemyCount = 5;
+    }
+    for (int i = 1; i < targetEnemyCount; ++i)
+    {
+        placeExtraEnemy(makeEnemyTemplate(c.normalEnemies[(levelIndex + i) % c.normalEnemies.size()], false, chapterIndex, levelIndex));
     }
 
     if (enemyName == QStringLiteral("偷窃者米格"))
     {
-        bool copiedOneUnit = false;
-        for (int i = 0; i < 5; ++i)
-        {
-            if (!copiedOneUnit && i != kHeroSlot && playerUnits_[i] != nullptr)
-            {
-                UnitTemplate copy = playerUnits_[i]->base;
-                copy.name = QStringLiteral("复制") + copy.name;
-                int s = slotForRow(copy.row, enemyUnits_);
-                if (s >= 0 && enemyUnits_[s] == nullptr)
-                {
-                    enemyUnits_[s] = createUnit(copy, false, false);
-                    copiedOneUnit = true;
-                    appendLog(QStringLiteral("米格开局复制了一个单位：%1。").arg(playerUnits_[i]->base.name));
-                }
-            }
-        }
+        migEntranceSkillSnapshot_ = skillSlots_;
+        appendLog(QStringLiteral("米格记住了入场时的技能区域。"));
     }
+    if (isMechanicBossName(enemyName)) showBossSkillIntro(enemyName);
 
     inBattle_ = true;
     if (refreshCallback_) refreshCallback_();
@@ -741,8 +1253,12 @@ void BattleEngine::setupWorldEvent(int chapterIndex, int& levelIndex)
         auto setupWorldBoss = [this, chapterIndex, &levelIndex]() {
             clearBoard(enemyUnits_);
             preparePlayerForBattle(chapterIndex);
+            agniPoisonDamage_ = 2;
+            iyvelOriginalAtk_.clear();
             enemyUnits_[2] = createUnit(makeEnemyTemplate(QStringLiteral("米凯尔"), true, chapterIndex, levelIndex), false, true);
             enemyUnits_[3] = createUnit(makeEnemyTemplate(QStringLiteral("阿格尼"), true, chapterIndex, levelIndex), false, true);
+            showBossSkillIntro(QStringLiteral("米凯尔"));
+            showBossSkillIntro(QStringLiteral("阿格尼"));
             inBattle_ = true;
             if (refreshCallback_) refreshCallback_();
         };
@@ -842,7 +1358,7 @@ void BattleEngine::finishLevel(int chapterIndex, int levelIndex)
     inBattle_ = false;
     gold_ += 5 + chapterIndex;
     if (relics_.contains(QStringLiteral("铜钱袋"))) gold_ += 2;
-    appendLog(QStringLiteral("胜利：获得金币，选择奖励。"));
+    appendLog(QStringLiteral("胜利：获得金币。"));
 
     QString bossRelic;
     QString bossAlly;
@@ -868,9 +1384,18 @@ void BattleEngine::finishLevel(int chapterIndex, int levelIndex)
             appendLog(QStringLiteral("剧情角色加入：%1").arg(rescuedName));
         }
     }
+    if (levelIndex == 10) growHeroAfterChapterBoss();
     if (refreshCallback_) refreshCallback_();
-    showUnitReward();
-    showRelicReward(bossRelic);
+    if (shouldOfferRewards(levelIndex))
+    {
+        appendLog(QStringLiteral("奖励节点：选择卡牌和遗物。"));
+        showUnitReward(chapterIndex, levelIndex, true);
+        showRelicReward(bossRelic);
+    }
+    else if (!bossRelic.isEmpty())
+    {
+        addRelic(bossRelic);
+    }
     tryFuseWorld();
 
     QStringList storyKeys;
@@ -920,39 +1445,81 @@ void BattleEngine::finishDefeat(int chapterIndex, int levelIndex)
     else if (restartGameCallback_) restartGameCallback_();
 }
 
-void BattleEngine::showUnitReward()
+void BattleEngine::showUnitReward(int chapterIndex, int levelIndex, bool priced)
 {
-    QVector<UnitTemplate> pool = {
-        {QStringLiteral("见习剑士"), QStringLiteral("人族"), QStringLiteral("前排"), QStringLiteral("斩击"), 42, 7},
-        {QStringLiteral("弓箭手"), QStringLiteral("人族"), QStringLiteral("后排"), QStringLiteral("箭雨"), 28, 11},
-        {QStringLiteral("牧师"), QStringLiteral("人族"), QStringLiteral("中排"), QStringLiteral("治疗术"), 32, 5},
-        {QStringLiteral("盾卫"), QStringLiteral("人族"), QStringLiteral("前排"), QStringLiteral("守护"), 58, 4},
-        {QStringLiteral("血仆"), QStringLiteral("吸血鬼"), QStringLiteral("前排"), QStringLiteral("吸血"), 40, 8},
-        {QStringLiteral("血术师"), QStringLiteral("吸血鬼"), QStringLiteral("中排"), QStringLiteral("赤心爆发"), 34, 10},
-        {QStringLiteral("精灵射手"), QStringLiteral("精灵族"), QStringLiteral("后排"), QStringLiteral("精灵箭"), 32, 12},
-        {QStringLiteral("守护天使"), QStringLiteral("天使"), QStringLiteral("前排"), QStringLiteral("六翼庇护"), 60, 6},
-        {QStringLiteral("火焰术士"), QStringLiteral("魔族"), QStringLiteral("中排"), QStringLiteral("魔焰"), 36, 13},
-        {QStringLiteral("深渊刺客"), QStringLiteral("魔族"), QStringLiteral("后排"), QStringLiteral("深渊爪击"), 32, 16}
-    };
-    QStringList names;
     QVector<UnitTemplate> offer;
-    for (int i = 0; i < 3; ++i)
-    {
+    QVector<int> prices;
+
+    auto takeForRow = [this, chapterIndex, levelIndex](const QString& row) {
+        QVector<UnitTemplate> pool = rewardPoolForRow(row, chapterIndex);
         UnitTemplate t = pool[QRandomGenerator::global()->bounded(pool.size())];
-        offer.push_back(t);
-        names << QStringLiteral("%1  |  %2  |  HP %3  ATK %4  |  %5")
-                     .arg(t.name, t.row)
-                     .arg(t.hp)
-                     .arg(t.atk)
-                     .arg(t.skill);
-    }
-    bool ok = false;
-    QString choice = QInputDialog::getItem(parentWidget_, QStringLiteral("棋子奖励"), QStringLiteral("选择一张加入牌库"), names, 0, false, &ok);
-    if (ok)
+        return scaledRewardUnit(t, chapterIndex, levelIndex);
+    };
+
+    const QStringList requiredRows = {
+        QStringLiteral("前排"),
+        QStringLiteral("前排"),
+        QStringLiteral("中排")
+    };
+    for (const QString& row : requiredRows)
     {
-        int idx = names.indexOf(choice);
-        if (idx >= 0) roster_.push_back(offer[idx]);
+        offer.push_back(takeForRow(row));
+        prices << randomCardPrice();
     }
+    for (int i = 0; i < 2; ++i)
+    {
+        const QString row = QRandomGenerator::global()->bounded(2) == 0
+            ? QStringLiteral("中排")
+            : QStringLiteral("后排");
+        offer.push_back(takeForRow(row));
+        prices << randomCardPrice();
+    }
+
+    QDialog dialog(parentWidget_);
+    dialog.setWindowTitle(QStringLiteral("棋子奖励"));
+    dialog.setMinimumWidth(900);
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+    layout->addWidget(smallLabel(priced
+        ? QStringLiteral("选择一张加入牌库。候选牌会随当前章节与关卡成长；金币不足的卡牌暂时无法购买。")
+        : QStringLiteral("选择一张加入牌库。")));
+    QHBoxLayout* cards = new QHBoxLayout;
+    QVector<QPushButton*> buttons;
+    int chosen = -1;
+    for (int i = 0; i < offer.size(); ++i)
+    {
+        const UnitTemplate& t = offer[i];
+        QString text = priced
+            ? QStringLiteral("%1\n%2  HP %3  ATK %4\n%5\n价格：%6 金币")
+                  .arg(t.name, t.row).arg(t.hp).arg(t.atk).arg(t.skill).arg(prices[i])
+            : QStringLiteral("%1\n%2  HP %3  ATK %4\n%5")
+                  .arg(t.name, t.row).arg(t.hp).arg(t.atk).arg(t.skill);
+        QPushButton* button = new QPushButton(text);
+        button->setMinimumSize(150, 128);
+        button->setMaximumWidth(170);
+        button->setEnabled(!priced || gold_ >= prices[i]);
+        cards->addWidget(button);
+        buttons << button;
+        connect(button, &QPushButton::clicked, &dialog, [&, i]() {
+            chosen = i;
+            dialog.accept();
+        });
+    }
+    layout->addLayout(cards);
+    QPushButton* skip = new QPushButton(QStringLiteral("跳过"));
+    layout->addWidget(skip, 0, Qt::AlignCenter);
+    connect(skip, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+    if (dialog.exec() == QDialog::Accepted && chosen >= 0)
+    {
+        if (priced)
+        {
+            gold_ -= prices[chosen];
+            appendLog(QStringLiteral("花费%1金币加入牌库：%2").arg(prices[chosen]).arg(offer[chosen].name));
+        }
+        roster_.push_back(offer[chosen]);
+        tryAutoFillPendingRefill(offer[chosen]);
+    }
+    Q_UNUSED(buttons);
 }
 
 void BattleEngine::showRelicReward(const QString& fixedRelic)
@@ -1059,8 +1626,13 @@ void BattleEngine::preparePlayerForBattle(int chapterIndex)
 
 void BattleEngine::showDeckRefillDialog(const QStringList& deadRows)
 {
-    if (roster_.isEmpty() || !inBattle_ || deadRows.isEmpty())
+    if (!inBattle_ || deadRows.isEmpty())
     {
+        return;
+    }
+    if (roster_.isEmpty())
+    {
+        rememberFailedRefills(deadRows, {});
         return;
     }
 
@@ -1216,6 +1788,7 @@ void BattleEngine::showDeckRefillDialog(const QStringList& deadRows)
     connect(ok, &QPushButton::clicked, &dialog, &QDialog::accept);
     dialog.exec();
 
+    QStringList filledRows;
     for (int i = 0; i < offer.size(); ++i)
     {
         if (!checks[i]->isChecked())
@@ -1226,6 +1799,7 @@ void BattleEngine::showDeckRefillDialog(const QStringList& deadRows)
         if (slot >= 0 && playerUnits_[slot] == nullptr)
         {
             playerUnits_[slot] = createUnit(offer[i].unit, false, false);
+            filledRows << offer[i].unit.row;
             appendLog(QStringLiteral("补员上场：%1 -> %2").arg(offer[i].unit.name).arg(offer[i].unit.row));
         }
         else
@@ -1233,6 +1807,7 @@ void BattleEngine::showDeckRefillDialog(const QStringList& deadRows)
             appendLog(QStringLiteral("补员未上场，返回牌库：%1").arg(offer[i].unit.name));
         }
     }
+    rememberFailedRefills(deadRows, filledRows);
 }
 
 void BattleEngine::runRound(int chapterIndex, int levelIndex)
@@ -1251,6 +1826,7 @@ void BattleEngine::runRound(int chapterIndex, int levelIndex)
 
     cleanupDeaths(enemyUnits_, false);
     cleanupDeaths(playerUnits_, true);
+    growAllUnitsMaxHp();
     ++battleRound_;
 
     // 死亡效果（复活/精灵树枝）播放完毕后再检查胜负
@@ -1291,10 +1867,36 @@ void BattleEngine::cleanupDeaths(std::array<UnitInstance*, 5>& board, bool playe
             appendLog(QStringLiteral("%1 因精灵王冠复苏。").arg(u->base.name));
             continue;
         }
-        if (!playerSide && u->boss && !u->revived && (u->base.name == QStringLiteral("艾琳") || u->base.name == QStringLiteral("阿格尼") || u->base.name == QStringLiteral("米凯尔")))
+        if (!playerSide && u->boss && u->base.name == QStringLiteral("艾琳") && eileenNextReviveSlot_ <= 4)
         {
-            u->hp = std::max(20, u->base.hp / 2);
-            u->base.atk += (u->base.name == QStringLiteral("阿格尼") ? u->base.atk : 0);
+            const int targetSlot = eileenNextReviveSlot_++;
+            if (targetSlot == 0 || targetSlot == 1) u->base.row = QStringLiteral("前排");
+            else if (targetSlot == 2 || targetSlot == 3) u->base.row = QStringLiteral("中排");
+            else u->base.row = QStringLiteral("后排");
+            u->hp = u->base.hp;
+            u->shield = 0;
+            u->revived = false;
+            if (targetSlot != i)
+            {
+                if (board[targetSlot] && board[targetSlot] != u) delete board[targetSlot];
+                board[targetSlot] = u;
+                board[i] = nullptr;
+            }
+            appendLog(QStringLiteral("不灭：艾琳满血复活并移动到%1。").arg(u->base.row));
+            queueFlash(u);
+            continue;
+        }
+        if (!playerSide && u->boss && !u->revived && (u->base.name == QStringLiteral("阿格尼") || u->base.name == QStringLiteral("米凯尔")))
+        {
+            if (u->base.name == QStringLiteral("阿格尼"))
+            {
+                u->hp = u->base.hp;
+                u->base.atk *= 2;
+            }
+            else
+            {
+                u->hp = std::max(20, u->base.hp / 2);
+            }
             u->revived = true;
             appendLog(QStringLiteral("%1 触发Boss复活机制。").arg(u->base.name));
             continue;
