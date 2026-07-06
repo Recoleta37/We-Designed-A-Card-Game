@@ -87,6 +87,11 @@ UnitTemplate BattleEngine::makeEnemyTemplate(const QString& name, bool boss, int
     if (name.contains(QStringLiteral("弓")) || name.contains(QStringLiteral("术")) || name.contains(QStringLiteral("刺"))) row = QStringLiteral("后排");
     if (name == QStringLiteral("偷窃者米格") && playerUnits_[kHeroSlot]) row = playerUnits_[kHeroSlot]->base.row;
     if (name == QStringLiteral("艾琳")) row = QStringLiteral("前排");
+    if (name == QStringLiteral("莱索恩"))
+    {
+        hp += 10;
+        atk += 10;
+    }
     QString skill = name;
     if (name == QStringLiteral("阿拉贡")) skill = QStringLiteral("炬火·耀");
     else if (name == QStringLiteral("偷窃者米格")) skill = QStringLiteral("偷窃 / 一无所有");
@@ -95,7 +100,7 @@ UnitTemplate BattleEngine::makeEnemyTemplate(const QString& name, bool boss, int
     else if (name == QStringLiteral("艾琳")) skill = QStringLiteral("始祖 / 血魔 / 不灭");
     else if (name == QStringLiteral("米凯尔")) skill = QStringLiteral("神御 / 号角 / 六翼制裁");
     else if (name == QStringLiteral("伊维尔")) skill = QStringLiteral("业火 / 魔主 / 炽焰 / 熔岩");
-    else if (name == QStringLiteral("莱索恩")) skill = QStringLiteral("四象 / 真·魔主 / 灭尽");
+    else if (name == QStringLiteral("莱索恩")) skill = QStringLiteral("终焉 / 四象 / 真·魔主 / 灭尽");
     return {name, QStringLiteral("敌人"), row, skill, hp, atk};
 }
 
@@ -587,6 +592,12 @@ bool BattleEngine::tryAutoFillPendingRefill(const UnitTemplate& unit)
 void BattleEngine::dealDamage(UnitInstance* target, int amount, const QString& reason, UnitInstance* source)
 {
     if (!target || amount <= 0) return;
+    if (target->boss && target->base.name == QStringLiteral("莱索恩") && battleRound_ <= 6)
+    {
+        queueFlash(target);
+        appendLog(QStringLiteral("终焉：莱索恩在前六回合没有受到伤害。"));
+        return;
+    }
     if (target->boss && target->base.name == QStringLiteral("米凯尔") && battleRound_ % 6 != 0)
     {
         queueFlash(target);
@@ -985,7 +996,8 @@ void BattleEngine::showBossSkillIntro(const QString& bossName)
               << QStringLiteral("炽焰：友方锋芒会被逐渐熔去。")
               << QStringLiteral("熔岩：伊维尔会持续积蓄力量。");
     else if (bossName == QStringLiteral("莱索恩"))
-        lines << QStringLiteral("四象：命运从四种征兆中翻涌。")
+        lines << QStringLiteral("终焉：前六回合，莱索恩不会受到伤害。")
+              << QStringLiteral("四象：命运从四种征兆中翻涌。")
               << QStringLiteral("真·魔主：更深的魔族会被召来。")
               << QStringLiteral("灭尽：久存者会被终焉点名。");
     else
