@@ -1,0 +1,2479 @@
+{
+  "prologue": [
+    {
+      "speaker": "魔王？？？",
+      "text": "世界已经开始改变",
+      "image": "assets/story/prologue/0-1.png"
+    },
+    {
+      "speaker": "魔王？？？",
+      "text": "魔族将出现在任何地方",
+      "image": "assets/story/prologue/0-2.png"
+    },
+    {
+      "speaker": "魔王？？？",
+      "text": "真神已经消失",
+      "image": "assets/story/prologue/0-3.png"
+    },
+    {
+      "speaker": "魔王？？？",
+      "text": "恭迎邪神的时代",
+      "image": "assets/story/prologue/0-3.png"
+    }
+  ],
+  "boss_魔王？？？": [
+    {
+      "speaker": "魔王？？？",
+      "text": "战场的尽头是什么呢",
+      "image": "assets/story/prologue/boss.png"
+    },
+    {
+      "speaker": "System",
+      "text": "Boss 登场：魔王？？？",
+      "image": "assets/story/prologue/boss.png"
+    }
+  ],
+  "c0_l10_after": [
+    {
+      "speaker": "Narrator",
+      "text": "是梦境",
+      "image": "assets/story/prologue/0-3.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "你从梦中惊醒",
+      "image": "assets/story/prologue/0-3.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "那只是一场梦",
+      "image": "assets/story/prologue/0-3.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "而已",
+      "image": "assets/story/prologue/0-3.png"
+    }
+  ],
+  "c1_l1": [
+    {
+      "speaker": "Narrator",
+      "text": "梦醒之后",
+      "image": "assets/story/chapter1/1-1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "风依旧吹拂田野",
+      "image": "assets/story/chapter1/1-1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "远方",
+      "image": "assets/story/chapter1/1-1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "有群山呼唤你的名字",
+      "image": "assets/story/chapter1/1-1.png"
+    },
+    {
+      "speaker": "养母",
+      "text": "去吧",
+      "image": "assets/story/chapter1/1-1.png"
+    },
+    {
+      "speaker": "养母",
+      "text": "去看看这个世界",
+      "image": "assets/story/chapter1/1-1.png"
+    }
+  ],
+  "c1_l1_after": [
+    {
+      "speaker": "Narrator",
+      "text": "麦浪起伏",
+      "image": "assets/story/chapter1/1-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "炊烟升起",
+      "image": "assets/story/chapter1/1-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "人们仍在耕作",
+      "image": "assets/story/chapter1/1-2.png"
+    }
+  ],
+  "c1_l2_after": [
+    {
+      "speaker": "阿拉贡（远处）",
+      "text": "加固城墙！",
+      "image": "assets/story/chapter1/1-3.png"
+    },
+    {
+      "speaker": "阿拉贡（远处）",
+      "text": "举起长枪！",
+      "image": "assets/story/chapter1/1-3.png"
+    },
+    {
+      "speaker": "阿拉贡（远处）",
+      "text": "今日",
+      "image": "assets/story/chapter1/1-3.png"
+    },
+    {
+      "speaker": "阿拉贡（远处）",
+      "text": "人类仍不可退后",
+      "image": "assets/story/chapter1/1-3.png"
+    }
+  ],
+  "c1_l3_after": [
+    {
+      "speaker": "Narrator",
+      "text": "王城巍然",
+      "image": "assets/story/chapter1/1-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "城门未闭",
+      "image": "assets/story/chapter1/1-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "仿佛战争",
+      "image": "assets/story/chapter1/1-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "从未临近",
+      "image": "assets/story/chapter1/1-4.png"
+    }
+  ],
+  "c1_l4_after": [
+    {
+      "speaker": "士兵",
+      "text": "昨夜",
+      "image": "assets/story/chapter1/1-5.png"
+    },
+    {
+      "speaker": "士兵",
+      "text": "前线又守住了",
+      "image": "assets/story/chapter1/1-5.png"
+    },
+    {
+      "speaker": "士兵",
+      "text": "另一名士兵笑了笑",
+      "image": "assets/story/chapter1/1-5.png"
+    },
+    {
+      "speaker": "士兵",
+      "text": "因为阿拉贡还在那里",
+      "image": "assets/story/chapter1/1-5.png"
+    }
+  ],
+  "c1_l5_after": [
+    {
+      "speaker": "Narrator",
+      "text": "城墙之外",
+      "image": "assets/story/chapter1/1-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "是魔族的旷野",
+      "image": "assets/story/chapter1/1-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "城墙之内",
+      "image": "assets/story/chapter1/1-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "是人类的家园",
+      "image": "assets/story/chapter1/1-6.png"
+    }
+  ],
+  "c1_l6_after": [
+    {
+      "speaker": "守卫",
+      "text": "地牢近来不太安宁",
+      "image": "assets/story/chapter1/1-7.png"
+    },
+    {
+      "speaker": "另一名守卫",
+      "text": "将军说",
+      "image": "assets/story/chapter1/1-7.png"
+    },
+    {
+      "speaker": "另一名守卫",
+      "text": "等他回来",
+      "image": "assets/story/chapter1/1-7.png"
+    },
+    {
+      "speaker": "另一名守卫",
+      "text": "一切都会结束",
+      "image": "assets/story/chapter1/1-7.png"
+    }
+  ],
+  "c1_l7_after": [
+    {
+      "speaker": "Narrator",
+      "text": "夜幕降临",
+      "image": "assets/story/chapter1/1-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "万家灯火",
+      "image": "assets/story/chapter1/1-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "人们举杯",
+      "image": "assets/story/chapter1/1-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "庆幸今日仍得安眠",
+      "image": "assets/story/chapter1/1-8.png"
+    }
+  ],
+  "c1_l8_after": [
+    {
+      "speaker": "老人",
+      "text": "我年少的时候",
+      "image": "assets/story/chapter1/1-9.png"
+    },
+    {
+      "speaker": "老人",
+      "text": "阿拉贡就在这里",
+      "image": "assets/story/chapter1/1-9.png"
+    },
+    {
+      "speaker": "老人",
+      "text": "如今我已经老去",
+      "image": "assets/story/chapter1/1-9.png"
+    },
+    {
+      "speaker": "老人",
+      "text": "他仍然站在那里",
+      "image": "assets/story/chapter1/1-9.png"
+    }
+  ],
+  "c1_l9_after": [
+    {
+      "speaker": "Narrator",
+      "text": "风吹动旌旗",
+      "image": "assets/story/chapter1/1-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "那位骑士",
+      "image": "assets/story/chapter1/1-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "始终立于城头",
+      "image": "assets/story/chapter1/1-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "从未离开",
+      "image": "assets/story/chapter1/1-10.png"
+    }
+  ],
+  "boss_阿拉贡": [
+    {
+      "speaker": "阿拉贡",
+      "text": "若你执意远行",
+      "image": "assets/story/chapter1/boss.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "就先证明",
+      "image": "assets/story/chapter1/boss.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "你的剑",
+      "image": "assets/story/chapter1/boss.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "不会倒在路上",
+      "image": "assets/story/chapter1/boss.png"
+    },
+    {
+      "speaker": "System",
+      "text": "章节 Boss 登场：阿拉贡",
+      "image": "assets/story/chapter1/boss.png"
+    }
+  ],
+  "c1_l10_after": [
+    {
+      "speaker": "阿拉贡",
+      "text": "人类需要你留下",
+      "image": "assets/story/chapter1/memory_1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "王城地牢深处",
+      "image": "assets/story/chapter1/memory_1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "你救出了被囚禁的精灵使者",
+      "image": "assets/story/chapter1/memory_1.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "森林会记住你的恩泽",
+      "image": "assets/story/chapter1/ally_elf_envoy.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "自今日起",
+      "image": "assets/story/chapter1/ally_elf_envoy.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "我与你同行",
+      "image": "assets/story/chapter1/ally_elf_envoy.png"
+    },
+    {
+      "speaker": "System",
+      "text": "剧情人物加入：精灵使者",
+      "image": "assets/story/chapter1/memory_1.png"
+    }
+  ],
+  "ally_阿拉贡": [
+    {
+      "speaker": "阿拉贡",
+      "text": "我会与你同行",
+      "image": "assets/story/chapter1/ally_aragorn.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "直到人族之剑",
+      "image": "assets/story/chapter1/ally_aragorn.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "不再需要我",
+      "image": "assets/story/chapter1/ally_aragorn.png"
+    },
+    {
+      "speaker": "System",
+      "text": "剧情队友加入：阿拉贡",
+      "image": "assets/story/chapter1/ally_aragorn.png"
+    },
+    {
+      "speaker": "System",
+      "text": "剧情队友加入：阿拉贡",
+      "image": "assets/story/chapter1/ally_aragorn.png"
+    }
+  ],
+  "c2_l1": [
+    {
+      "speaker": "Narrator",
+      "text": "离开人类王国",
+      "image": "assets/story/chapter2/2-1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "大地染成了猩红",
+      "image": "assets/story/chapter2/2-1.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "这里",
+      "image": "assets/story/chapter2/2-1.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "已经不是人类的土地了",
+      "image": "assets/story/chapter2/2-1.png"
+    }
+  ],
+  "c2_l1_after": [
+    {
+      "speaker": "Narrator",
+      "text": "村庄已经空了",
+      "image": "assets/story/chapter2/2-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "也许风还记得这里",
+      "image": "assets/story/chapter2/2-2.png"
+    }
+  ],
+  "c2_l2_after": [
+    {
+      "speaker": "精灵使者",
+      "text": "这里曾经生活过很多人",
+      "image": "assets/story/chapter2/2-3.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "阿拉贡没有回答",
+      "image": "assets/story/chapter2/2-3.png"
+    }
+  ],
+  "c2_l3_after": [
+    {
+      "speaker": "Narrator",
+      "text": "地平线尽头",
+      "image": "assets/story/chapter2/2-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "一座城市缓缓出现",
+      "image": "assets/story/chapter2/2-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "它依旧繁华",
+      "image": "assets/story/chapter2/2-4.png"
+    }
+  ],
+  "c2_l4_after": [
+    {
+      "speaker": "阿拉贡",
+      "text": "那就是艾琳堡垒",
+      "image": "assets/story/chapter2/2-4.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "以它的主人命名吗？",
+      "image": "assets/story/chapter2/2-4.png"
+    }
+  ],
+  "boss_吸血鬼伯爵": [
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "猩红平原欢迎所有仍有血液的人",
+      "image": "assets/story/chapter2/boss_count.png"
+    },
+    {
+      "speaker": "System",
+      "text": "剧情 Boss 登场：吸血鬼伯爵",
+      "image": "assets/story/chapter2/boss_count.png"
+    }
+  ],
+  "c2_l5_after": [
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "但你不能杀死我",
+      "image": "assets/story/chapter2/memory_count.png"
+    },
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "你甚至需要答应我的条件",
+      "image": "assets/story/chapter2/memory_count.png"
+    },
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "杀死米格",
+      "image": "assets/story/chapter2/memory_count.png"
+    },
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "他在远古城市",
+      "image": "assets/story/chapter2/memory_count.png"
+    },
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "然后带着他偷走的东西去找艾琳",
+      "image": "assets/story/chapter2/memory_count.png"
+    },
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "不然",
+      "image": "assets/story/chapter2/memory_count.png"
+    },
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "我不会解除结界",
+      "image": "assets/story/chapter2/memory_count.png"
+    },
+    {
+      "speaker": "吸血鬼伯爵",
+      "text": "你就无法离开平原",
+      "image": "assets/story/chapter2/memory_count.png"
+    }
+  ],
+  "c2_l6_after": [
+    {
+      "speaker": "Narrator",
+      "text": "你离开了艾琳堡垒",
+      "image": "assets/story/chapter2/2-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "向更深处走去",
+      "image": "assets/story/chapter2/2-7.png"
+    }
+  ],
+  "c2_l7_after": [
+    {
+      "speaker": "精灵使者",
+      "text": "前面",
+      "image": "assets/story/chapter2/2-8.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "是沙漠",
+      "image": "assets/story/chapter2/2-8.png"
+    }
+  ],
+  "c2_l8_after": [
+    {
+      "speaker": "Narrator",
+      "text": "沙漠挡住了去路",
+      "image": "assets/story/chapter2/2-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "一座远古城市",
+      "image": "assets/story/chapter2/2-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "从黄沙中缓缓出现",
+      "image": "assets/story/chapter2/2-9.png"
+    }
+  ],
+  "c2_l9_after": [
+    {
+      "speaker": "Narrator",
+      "text": "阿拉贡缓缓握住剑柄",
+      "image": "assets/story/chapter2/2-9.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "怎么了？",
+      "image": "assets/story/chapter2/2-9.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "有人在等我们",
+      "image": "assets/story/chapter2/2-9.png"
+    }
+  ],
+  "boss_偷窃者米格": [
+    {
+      "speaker": "米格",
+      "text": "我是偷窃者",
+      "image": "assets/story/chapter2/boss_mig.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "让我看看你有什么",
+      "image": "assets/story/chapter2/boss_mig.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "然后我会有更多",
+      "image": "assets/story/chapter2/boss_mig.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "希望你能杀死我",
+      "image": "assets/story/chapter2/boss_mig.png"
+    },
+    {
+      "speaker": "System",
+      "text": "章节 Boss 登场：偷窃者米格",
+      "image": "assets/story/chapter2/boss_mig.png"
+    }
+  ],
+  "c2_l10_after": [
+    {
+      "speaker": "Narrator",
+      "text": "你获得了偷窃之力",
+      "image": "assets/story/chapter2/memory_mig_1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "但能偷走的",
+      "image": "assets/story/chapter2/memory_mig_1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "只有记忆",
+      "image": "assets/story/chapter2/memory_mig_1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "米格的记忆",
+      "image": "assets/story/chapter2/memory_mig_2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "像雨一样落下",
+      "image": "assets/story/chapter2/memory_mig_2.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我只是一位仆人",
+      "image": "assets/story/chapter2/memory_mig_2.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "又怎么有资格爱上伯爵的女儿",
+      "image": "assets/story/chapter2/memory_mig_3.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我记得雨夜伯爵解散了所有仆人",
+      "image": "assets/story/chapter2/memory_mig_3.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我饥寒交迫地躺在废墟之中",
+      "image": "assets/story/chapter2/memory_mig_3.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "魔王就那样出现在我面前",
+      "image": "assets/story/chapter2/memory_mig_4.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "他赐予我偷窃万物的能力",
+      "image": "assets/story/chapter2/memory_mig_4.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "而我需要偷走伯爵的一样东西",
+      "image": "assets/story/chapter2/memory_mig_5.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "在伯爵的城堡",
+      "image": "assets/story/chapter2/memory_mig_5.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我见到了他的女儿",
+      "image": "assets/story/chapter2/memory_mig_5.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我没想到她变成了那样",
+      "image": "assets/story/chapter2/memory_mig_6.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我知道我做了什么",
+      "image": "assets/story/chapter2/memory_mig_6.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我也偷走了我的灵魂",
+      "image": "assets/story/chapter2/memory_mig_6.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我就这样往前走着",
+      "image": "assets/story/chapter2/memory_mig_7.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "从平原走到沙漠",
+      "image": "assets/story/chapter2/memory_mig_7.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "直到这座远古城市挡住了我",
+      "image": "assets/story/chapter2/memory_mig_7.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "我就留在这里",
+      "image": "assets/story/chapter2/memory_mig_8.png"
+    },
+    {
+      "speaker": "米格",
+      "text": "等着有人结束我的人生",
+      "image": "assets/story/chapter2/memory_mig_8.png"
+    }
+  ],
+  "c3_l1": [
+    {
+      "speaker": "游侠",
+      "text": "我云游四海",
+      "image": "assets/story/chapter3/ally_ranger.png"
+    },
+    {
+      "speaker": "游侠",
+      "text": "到达这里人定也充满勇气",
+      "image": "assets/story/chapter3/ally_ranger.png"
+    },
+    {
+      "speaker": "游侠",
+      "text": "也许你就是有资格与我同行之人",
+      "image": "assets/story/chapter3/ally_ranger.png"
+    },
+    {
+      "speaker": "游侠",
+      "text": "我感受到赤心的跳动",
+      "image": "assets/story/chapter3/ally_ranger.png"
+    },
+    {
+      "speaker": "游侠",
+      "text": "我们仍有时间",
+      "image": "assets/story/chapter3/ally_ranger.png"
+    }
+  ],
+  "c3_l1_after": [
+    {
+      "speaker": "Narrator",
+      "text": "又是荒废的村庄",
+      "image": ""
+    }
+  ],
+  "c3_l2_after": [
+    {
+      "speaker": "阿拉贡",
+      "text": "越往前走",
+      "image": ""
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "就越看不出人类曾经的存在",
+      "image": ""
+    }
+  ],
+  "c3_l3_after": [
+    {
+      "speaker": "Narrator",
+      "text": "阳光照耀着整座城市",
+      "image": ""
+    },
+    {
+      "speaker": "Narrator",
+      "text": "这里从未属于黑夜",
+      "image": ""
+    }
+  ],
+  "c3_l4_after": [
+    {
+      "speaker": "吸血鬼",
+      "text": "听说感应者发现了人类的闯入",
+      "image": ""
+    },
+    {
+      "speaker": "吸血鬼",
+      "text": "另一位轻轻笑了笑",
+      "image": ""
+    },
+    {
+      "speaker": "吸血鬼",
+      "text": "在始祖面前不过自寻死路",
+      "image": ""
+    }
+  ],
+  "c3_l5_after": [
+    {
+      "speaker": "Narrator",
+      "text": "城堡矗立城市中央",
+      "image": ""
+    },
+    {
+      "speaker": "Narrator",
+      "text": "统治着整个猩红平原",
+      "image": ""
+    }
+  ],
+  "c3_l6_after": [
+    {
+      "speaker": "游侠",
+      "text": "有人在里面",
+      "image": ""
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "她从来没有离开过",
+      "image": ""
+    }
+  ],
+  "c3_l7_after": [
+    {
+      "speaker": "Narrator",
+      "text": "城堡很安静",
+      "image": ""
+    },
+    {
+      "speaker": "Narrator",
+      "text": "像停止了时间",
+      "image": ""
+    }
+  ],
+  "c3_l8_after": [
+    {
+      "speaker": "精灵使者",
+      "text": "我能感觉到",
+      "image": "assets/story/chapter3/3-8.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "她就在前面",
+      "image": "assets/story/chapter3/3-8.png"
+    }
+  ],
+  "c3_l9_after": [
+    {
+      "speaker": "Narrator",
+      "text": "没有人迎接你",
+      "image": "assets/story/chapter3/3-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "只有那道身影",
+      "image": "assets/story/chapter3/3-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "静静等待着你的到来",
+      "image": "assets/story/chapter3/3-9.png"
+    }
+  ],
+  "boss_艾琳": [
+    {
+      "speaker": "艾琳",
+      "text": "赤心不是弱点",
+      "image": "assets/story/chapter3/boss.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "在始祖面前跪下，蝼蚁们！",
+      "image": "assets/story/chapter3/boss.png"
+    },
+    {
+      "speaker": "System",
+      "text": "章节 Boss 登场：艾琳",
+      "image": "assets/story/chapter3/boss.png"
+    }
+  ],
+  "c3_l10_after": [
+    {
+      "speaker": "Narrator",
+      "text": "艾琳的回忆",
+      "image": "assets/story/chapter3/memory_1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "像雪一样融化",
+      "image": "assets/story/chapter3/memory_1.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "我只是城堡伯爵的女儿",
+      "image": "assets/story/chapter3/memory_1.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "直到我的父亲试图复活我死去的哥哥",
+      "image": "assets/story/chapter3/memory_1.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "那个金色的身影",
+      "image": "assets/story/chapter3/memory_1.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "就那样出现了",
+      "image": "assets/story/chapter3/memory_2.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "他告诉父亲",
+      "image": "assets/story/chapter3/memory_2.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "不死才是诅咒",
+      "image": "assets/story/chapter3/memory_2.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "而我将会赐予你们",
+      "image": "assets/story/chapter3/memory_2.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "从此",
+      "image": "assets/story/chapter3/memory_3.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "世界上诞生了吸血鬼",
+      "image": "assets/story/chapter3/memory_3.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "而我",
+      "image": "assets/story/chapter3/memory_3.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "就成了原初的吸血鬼",
+      "image": "assets/story/chapter3/memory_3.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "我记得闯进来的人",
+      "image": "assets/story/chapter3/memory_3.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "是我曾经的仆人",
+      "image": "assets/story/chapter3/memory_4.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "不过无所谓了",
+      "image": "assets/story/chapter3/memory_4.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "感谢有人",
+      "image": "assets/story/chapter3/memory_4.png"
+    },
+    {
+      "speaker": "艾琳",
+      "text": "破除了我的诅咒",
+      "image": "assets/story/chapter3/memory_4.png"
+    }
+  ],
+  "ally_游侠": [
+    {
+      "speaker": "游侠",
+      "text": "我的箭",
+      "image": "assets/story/chapter3/ally_ranger.png"
+    },
+    {
+      "speaker": "游侠",
+      "text": "会替你看住后方",
+      "image": "assets/story/chapter3/ally_ranger.png"
+    },
+    {
+      "speaker": "System",
+      "text": "剧情队友加入：游侠",
+      "image": "assets/story/chapter3/ally_ranger.png"
+    }
+  ],
+  "c4_l1": [
+    {
+      "speaker": "Narrator",
+      "text": "森林欢迎所有",
+      "image": "assets/story/chapter4/4-1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "唯独拒绝时间",
+      "image": "assets/story/chapter4/4-1.png"
+    }
+  ],
+  "c4_l1_after": [
+    {
+      "speaker": "游侠",
+      "text": "太安静了",
+      "image": "assets/story/chapter4/4-2.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "这里一直如此",
+      "image": "assets/story/chapter4/4-2.png"
+    }
+  ],
+  "c4_l2_after": [
+    {
+      "speaker": "Narrator",
+      "text": "阿拉贡停下脚步",
+      "image": "assets/story/chapter4/4-3.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "森海无垠",
+      "image": "assets/story/chapter4/4-3.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "支上栖鸟",
+      "image": "assets/story/chapter4/4-3.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "不鸣不翔",
+      "image": "assets/story/chapter4/4-3.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "无生无亡",
+      "image": "assets/story/chapter4/4-3.png"
+    }
+  ],
+  "c4_l3_after": [
+    {
+      "speaker": "Narrator",
+      "text": "柳叶挂枝",
+      "image": "assets/story/chapter4/4-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "永世长青",
+      "image": "assets/story/chapter4/4-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "黄叶枯槁",
+      "image": "assets/story/chapter4/4-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "永不化尘",
+      "image": "assets/story/chapter4/4-4.png"
+    }
+  ],
+  "c4_l4_after": [
+    {
+      "speaker": "精灵使者",
+      "text": "很久以前",
+      "image": "assets/story/chapter4/4-5.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "湖水会歌唱",
+      "image": "assets/story/chapter4/4-5.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "而到现在",
+      "image": "assets/story/chapter4/4-5.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "只倒映天空",
+      "image": "assets/story/chapter4/4-5.png"
+    }
+  ],
+  "c4_l5_after": [
+    {
+      "speaker": "Narrator",
+      "text": "森林没有衰败",
+      "image": "assets/story/chapter4/4-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "精灵没有死去",
+      "image": "assets/story/chapter4/4-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "只是",
+      "image": "assets/story/chapter4/4-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "森林不再是森林",
+      "image": "assets/story/chapter4/4-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "精灵不再是精灵",
+      "image": "assets/story/chapter4/4-6.png"
+    }
+  ],
+  "c4_l6_after": [
+    {
+      "speaker": "阿拉贡",
+      "text": "为什么这里没有墓碑",
+      "image": "assets/story/chapter4/4-7.png"
+    }
+  ],
+  "c4_l7_after": [
+    {
+      "speaker": "Narrator",
+      "text": "梅鹿伏草",
+      "image": "assets/story/chapter4/4-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "惊而不走",
+      "image": "assets/story/chapter4/4-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "白狐卧雪",
+      "image": "assets/story/chapter4/4-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "兔来不扑",
+      "image": "assets/story/chapter4/4-8.png"
+    }
+  ],
+  "c4_l8_after": [
+    {
+      "speaker": "Narrator",
+      "text": "游侠缓缓抬头",
+      "image": "assets/story/chapter4/4-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "世界树",
+      "image": "assets/story/chapter4/4-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "终于出现在众人眼前",
+      "image": "assets/story/chapter4/4-9.png"
+    }
+  ],
+  "c4_l9_after": [
+    {
+      "speaker": "Narrator",
+      "text": "有人坐在那里",
+      "image": "assets/story/chapter4/4-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "等待着每一个来到这里的人",
+      "image": "assets/story/chapter4/4-10.png"
+    }
+  ],
+  "boss_阿格尼": [
+    {
+      "speaker": "阿格尼",
+      "text": "我是精灵王阿格尼",
+      "image": "assets/story/chapter4/boss.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "若你要穿过圣地",
+      "image": "assets/story/chapter4/boss.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "就证明你不会践踏森林",
+      "image": "assets/story/chapter4/boss.png"
+    },
+    {
+      "speaker": "System",
+      "text": "章节 Boss 登场：精灵王阿格尼",
+      "image": "assets/story/chapter4/boss.png"
+    }
+  ],
+  "c4_l10_after": [
+    {
+      "speaker": "Narrator",
+      "text": "阿格尼的记忆",
+      "image": "assets/story/chapter4/memory_1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "燃烧着",
+      "image": "assets/story/chapter4/memory_1.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "我是至高无上的精灵王",
+      "image": "assets/story/chapter4/memory_1.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "却爱上了被诅咒的吸血鬼",
+      "image": "assets/story/chapter4/memory_1.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "长生",
+      "image": "assets/story/chapter4/memory_1.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "只有这样",
+      "image": "assets/story/chapter4/memory_1.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "才能与她厮守",
+      "image": "assets/story/chapter4/memory_1.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "我也要获取它",
+      "image": "assets/story/chapter4/memory_2.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "而邪神给了我机会",
+      "image": "assets/story/chapter4/memory_2.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "但邪神没有说",
+      "image": "assets/story/chapter4/memory_2.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "这也是诅咒",
+      "image": "assets/story/chapter4/memory_2.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "这诅咒侵染了精灵的圣洁力量",
+      "image": "assets/story/chapter4/memory_2.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "在绝对的永生下",
+      "image": "assets/story/chapter4/memory_2.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "树叶不再落下",
+      "image": "assets/story/chapter4/memory_2.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "鸟儿永不飞翔",
+      "image": "assets/story/chapter4/memory_3.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "狐狸懒得捕猎",
+      "image": "assets/story/chapter4/memory_3.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "精灵难解迷茫",
+      "image": "assets/story/chapter4/memory_3.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "而我是唯一的例外",
+      "image": "assets/story/chapter4/memory_3.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "我是精灵的罪人",
+      "image": "assets/story/chapter4/memory_3.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "我要等待对我的制裁",
+      "image": "assets/story/chapter4/memory_3.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "阿格尼",
+      "image": "assets/story/chapter4/memory_3.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "你的确受到了永恒的召唤",
+      "image": "assets/story/chapter4/memory_4.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "但这里只是被诅咒成了永恒",
+      "image": "assets/story/chapter4/memory_4.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "真正召唤你的是原初的永恒",
+      "image": "assets/story/chapter4/memory_4.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "去吧",
+      "image": "assets/story/chapter4/memory_4.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "去那魔境的腹地",
+      "image": "assets/story/chapter4/memory_4.png"
+    },
+    {
+      "speaker": "阿格尼",
+      "text": "无主的境域",
+      "image": "assets/story/chapter4/memory_4.png"
+    }
+  ],
+  "c5_l1": [
+    {
+      "speaker": "加百列",
+      "text": "撒冷不曾言语",
+      "image": "assets/story/chapter5/5-1.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "我奉命引领你",
+      "image": "assets/story/chapter5/5-1.png"
+    }
+  ],
+  "c5_l1_after": [
+    {
+      "speaker": "Narrator",
+      "text": "圣河长流",
+      "image": "assets/story/chapter5/5-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "自太初便是如此",
+      "image": "assets/story/chapter5/5-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "河畔有孩童嬉戏",
+      "image": "assets/story/chapter5/5-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "他们折下芦苇",
+      "image": "assets/story/chapter5/5-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "编作小舟",
+      "image": "assets/story/chapter5/5-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "任它顺流而去",
+      "image": "assets/story/chapter5/5-2.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "我们都曾如此",
+      "image": "assets/story/chapter5/5-2.png"
+    }
+  ],
+  "c5_l2_after": [
+    {
+      "speaker": "主角",
+      "text": "我仿佛……",
+      "image": "assets/story/chapter5/5-3.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "看见了什么",
+      "image": "assets/story/chapter5/5-3.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "我也看见了",
+      "image": "assets/story/chapter5/5-3.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "荣光本就不可尽见",
+      "image": "assets/story/chapter5/5-3.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "前行便是",
+      "image": "assets/story/chapter5/5-3.png"
+    }
+  ],
+  "c5_l3_after": [
+    {
+      "speaker": "Narrator",
+      "text": "圣河便改了流向",
+      "image": "assets/story/chapter5/5-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "自大地而起",
+      "image": "assets/story/chapter5/5-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "向诸天而去",
+      "image": "assets/story/chapter5/5-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "众人便知道",
+      "image": "assets/story/chapter5/5-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "撒冷到了",
+      "image": "assets/story/chapter5/5-4.png"
+    }
+  ],
+  "c5_l4_after": [
+    {
+      "speaker": "Narrator",
+      "text": "河畔",
+      "image": "assets/story/chapter5/5-5.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "有父亲修补小舟",
+      "image": "assets/story/chapter5/5-5.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "孩子坐在身旁",
+      "image": "assets/story/chapter5/5-5.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "轻轻扶着船身",
+      "image": "assets/story/chapter5/5-5.png"
+    },
+    {
+      "speaker": "孩子问",
+      "text": "它还能再漂一次吗？",
+      "image": "assets/story/chapter5/5-5.png"
+    },
+    {
+      "speaker": "父亲回答",
+      "text": "当然可以",
+      "image": "assets/story/chapter5/5-5.png"
+    },
+    {
+      "speaker": "父亲回答",
+      "text": "因为我们都曾乘它而来",
+      "image": "assets/story/chapter5/5-5.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "原来",
+      "image": "assets/story/chapter5/5-5.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "天使也有自己的家",
+      "image": "assets/story/chapter5/5-5.png"
+    }
+  ],
+  "c5_l5_after": [
+    {
+      "speaker": "Narrator",
+      "text": "日光照耀其地",
+      "image": "assets/story/chapter5/5-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "石阶便映出六翼之影",
+      "image": "assets/story/chapter5/5-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "众人举目而望",
+      "image": "assets/story/chapter5/5-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "却无一人得见",
+      "image": "assets/story/chapter5/5-6.png"
+    }
+  ],
+  "c5_l6_after": [
+    {
+      "speaker": "Narrator",
+      "text": "河边",
+      "image": "assets/story/chapter5/5-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "有兄长采下花枝",
+      "image": "assets/story/chapter5/5-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "编作花冠",
+      "image": "assets/story/chapter5/5-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "戴在妹妹头上",
+      "image": "assets/story/chapter5/5-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "妹妹欢喜",
+      "image": "assets/story/chapter5/5-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "便跑向圣河",
+      "image": "assets/story/chapter5/5-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "加百列轻轻笑了",
+      "image": "assets/story/chapter5/5-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "我们幼时",
+      "image": "assets/story/chapter5/5-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "也是如此",
+      "image": "assets/story/chapter5/5-7.png"
+    }
+  ],
+  "c5_l7_after": [
+    {
+      "speaker": "Narrator",
+      "text": "那时",
+      "image": "assets/story/chapter5/5-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "风便止息",
+      "image": "assets/story/chapter5/5-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "圣河寂静",
+      "image": "assets/story/chapter5/5-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "万物等候",
+      "image": "assets/story/chapter5/5-8.png"
+    }
+  ],
+  "c5_l8_after": [
+    {
+      "speaker": "Narrator",
+      "text": "河畔",
+      "image": "assets/story/chapter5/5-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "有一位兄长",
+      "image": "assets/story/chapter5/5-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "独自望向远方",
+      "image": "assets/story/chapter5/5-9.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "他在等谁？",
+      "image": "assets/story/chapter5/5-9.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "加百列沉默许久",
+      "image": "assets/story/chapter5/5-9.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "他的妹妹",
+      "image": "assets/story/chapter5/5-9.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "今日",
+      "image": "assets/story/chapter5/5-9.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "她不会回来了",
+      "image": "assets/story/chapter5/5-9.png"
+    }
+  ],
+  "c5_l9_after": [
+    {
+      "speaker": "Narrator",
+      "text": "六片金羽缓缓降下",
+      "image": "assets/story/chapter5/5-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "众天使停下脚步",
+      "image": "assets/story/chapter5/5-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "一同低下头",
+      "image": "assets/story/chapter5/5-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "加百列亦俯身行礼",
+      "image": "assets/story/chapter5/5-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "米凯尔大人",
+      "image": "assets/story/chapter5/5-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "我已将他们带来",
+      "image": "assets/story/chapter5/5-10.png"
+    }
+  ],
+  "boss_米凯尔": [
+    {
+      "speaker": "米凯尔",
+      "text": "身怀异端的存在",
+      "image": "assets/story/chapter5/boss.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "我指控你亵渎人类的本质",
+      "image": "assets/story/chapter5/boss.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "审判本就不需要理由",
+      "image": "assets/story/chapter5/boss.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "它只需要降临",
+      "image": "assets/story/chapter5/boss.png"
+    },
+    {
+      "speaker": "System",
+      "text": "章节 Boss 登场：米凯尔",
+      "image": "assets/story/chapter5/boss.png"
+    }
+  ],
+  "c5_l10_after": [
+    {
+      "speaker": "米凯尔",
+      "text": "我给你讲个故事吧，人类",
+      "image": "assets/story/chapter5/memory_1.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "我们天使",
+      "image": "assets/story/chapter5/memory_1.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "在圣河飘下的小舟诞生",
+      "image": "assets/story/chapter5/memory_1.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "扶养我们的是父母",
+      "image": "assets/story/chapter5/memory_1.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "而同坐小舟的则是兄妹",
+      "image": "assets/story/chapter5/memory_2.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "我们世代与魔族为战",
+      "image": "assets/story/chapter5/memory_2.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "我成为天使的领袖",
+      "image": "assets/story/chapter5/memory_2.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "我的妹妹却爱上了魔族",
+      "image": "assets/story/chapter5/memory_2.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "她失踪后",
+      "image": "assets/story/chapter5/memory_3.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "我迷茫地沿圣河而上",
+      "image": "assets/story/chapter5/memory_3.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "不知哪里",
+      "image": "assets/story/chapter5/memory_3.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "我见到了闪光的身影",
+      "image": "assets/story/chapter5/memory_3.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "他赐予我六翼",
+      "image": "assets/story/chapter5/memory_4.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "而拥有六翼的天使",
+      "image": "assets/story/chapter5/memory_4.png"
+    },
+    {
+      "speaker": "米凯尔",
+      "text": "会改变世界的命运",
+      "image": "assets/story/chapter5/memory_4.png"
+    }
+  ],
+  "ally_加百列": [
+    {
+      "speaker": "加百列",
+      "text": "我加入你",
+      "image": "assets/story/chapter5/ally_gabriel.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "不以天使之命",
+      "image": "assets/story/chapter5/ally_gabriel.png"
+    },
+    {
+      "speaker": "System",
+      "text": "剧情队友加入：加百列",
+      "image": "assets/story/chapter5/ally_gabriel.png"
+    }
+  ],
+  "c6_l1": [
+    {
+      "speaker": "加百列",
+      "text": "前方便是魔境",
+      "image": "assets/story/chapter6/6-1.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "此后所见",
+      "image": "assets/story/chapter6/6-1.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "皆非人间",
+      "image": "assets/story/chapter6/6-1.png"
+    }
+  ],
+  "c6_l1_after": [
+    {
+      "speaker": "Narrator",
+      "text": "城池依旧",
+      "image": "assets/story/chapter6/6-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "火焰未熄",
+      "image": "assets/story/chapter6/6-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "仿佛岁月",
+      "image": "assets/story/chapter6/6-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "从未来过这里",
+      "image": "assets/story/chapter6/6-2.png"
+    }
+  ],
+  "c6_l2_after": [
+    {
+      "speaker": "阿拉贡",
+      "text": "比我想象得安静",
+      "image": "assets/story/chapter6/6-3.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "强大的国度",
+      "image": "assets/story/chapter6/6-3.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "本就无需喧哗",
+      "image": "assets/story/chapter6/6-3.png"
+    }
+  ],
+  "c6_l3_after": [
+    {
+      "speaker": "Narrator",
+      "text": "广场之上",
+      "image": "assets/story/chapter6/6-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "历代魔王皆立于此",
+      "image": "assets/story/chapter6/6-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "唯独中央",
+      "image": "assets/story/chapter6/6-4.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "空无一物",
+      "image": "assets/story/chapter6/6-4.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "为什么？",
+      "image": "assets/story/chapter6/6-4.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "加百列沉默片刻",
+      "image": "assets/story/chapter6/6-4.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "我不知道",
+      "image": "assets/story/chapter6/6-4.png"
+    }
+  ],
+  "c6_l4_after": [
+    {
+      "speaker": "精灵使者",
+      "text": "那就是王宫",
+      "image": "assets/story/chapter6/6-5.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "阿拉贡望着远方",
+      "image": "assets/story/chapter6/6-5.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "没有说话",
+      "image": "assets/story/chapter6/6-5.png"
+    }
+  ],
+  "c6_l5_after": [
+    {
+      "speaker": "Narrator",
+      "text": "两位魔族擦肩而过",
+      "image": "assets/story/chapter6/6-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "甲低头",
+      "image": "assets/story/chapter6/6-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "魔王陛下",
+      "image": "assets/story/chapter6/6-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "乙亦低头",
+      "image": "assets/story/chapter6/6-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "魔王陛下",
+      "image": "assets/story/chapter6/6-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "随后二人离去",
+      "image": "assets/story/chapter6/6-6.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "仿佛什么都没有发生",
+      "image": "assets/story/chapter6/6-6.png"
+    }
+  ],
+  "c6_l6_after": [
+    {
+      "speaker": "主角",
+      "text": "他们……",
+      "image": "assets/story/chapter6/6-7.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "好像都知道些什么",
+      "image": "assets/story/chapter6/6-7.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "每一个国度",
+      "image": "assets/story/chapter6/6-7.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "都有不能询问的事情",
+      "image": "assets/story/chapter6/6-7.png"
+    }
+  ],
+  "c6_l7_after": [
+    {
+      "speaker": "Narrator",
+      "text": "风吹过旷野",
+      "image": "assets/story/chapter6/6-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "阿拉贡缓缓按住剑柄",
+      "image": "assets/story/chapter6/6-8.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "怎么了？",
+      "image": "assets/story/chapter6/6-8.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "阿拉贡沉默良久",
+      "image": "assets/story/chapter6/6-8.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "……没什么",
+      "image": "assets/story/chapter6/6-8.png"
+    }
+  ],
+  "c6_l8_after": [
+    {
+      "speaker": "Narrator",
+      "text": "王宫越来越近",
+      "image": "assets/story/chapter6/6-9.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "四周却越来越安静",
+      "image": "assets/story/chapter6/6-9.png"
+    }
+  ],
+  "c6_l9_after": [
+    {
+      "speaker": "Narrator",
+      "text": "王座之前",
+      "image": "assets/story/chapter6/6-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "已有人静静等待",
+      "image": "assets/story/chapter6/6-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "他没有开口",
+      "image": "assets/story/chapter6/6-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "只是望着你",
+      "image": "assets/story/chapter6/6-10.png"
+    }
+  ],
+  "boss_伊维尔": [
+    {
+      "speaker": "伊维尔",
+      "text": "踏入魔境的人",
+      "image": "assets/story/chapter6/boss.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "迟早要承认",
+      "image": "assets/story/chapter6/boss.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "自己心中",
+      "image": "assets/story/chapter6/boss.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "也有火焰",
+      "image": "assets/story/chapter6/boss.png"
+    },
+    {
+      "speaker": "System",
+      "text": "章节 Boss 登场：伊维尔",
+      "image": "assets/story/chapter6/boss.png"
+    }
+  ],
+  "c6_l10_after": [
+    {
+      "speaker": "Narrator",
+      "text": "伊维尔的记忆",
+      "image": "assets/story/chapter6/memory_1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "融入黑夜",
+      "image": "assets/story/chapter6/memory_1.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "我的父亲",
+      "image": "assets/story/chapter6/memory_1.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "是最残暴的魔王",
+      "image": "assets/story/chapter6/memory_2.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "居然有天使",
+      "image": "assets/story/chapter6/memory_2.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "爱上了他",
+      "image": "assets/story/chapter6/memory_2.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "那愚蠢的天使",
+      "image": "assets/story/chapter6/memory_3.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "被榨干了最后的价值",
+      "image": "assets/story/chapter6/memory_3.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "可她留下的孩子",
+      "image": "assets/story/chapter6/memory_3.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "——那个曾被我欺凌的人",
+      "image": "assets/story/chapter6/memory_4.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "有一天",
+      "image": "assets/story/chapter6/memory_4.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "他站到了我的面前",
+      "image": "assets/story/chapter6/memory_4.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "我终于明白",
+      "image": "assets/story/chapter6/memory_5.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "我早已不是魔王",
+      "image": "assets/story/chapter6/memory_5.png"
+    },
+    {
+      "speaker": "伊维尔",
+      "text": "他才是真正的魔王",
+      "image": "assets/story/chapter6/memory_5.png"
+    }
+  ],
+  "c7_l1": [
+    {
+      "speaker": "Narrator",
+      "text": "离开魔境之后",
+      "image": "assets/story/chapter7/7-1.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "世界忽然安静下来",
+      "image": "assets/story/chapter7/7-1.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "从这里开始",
+      "image": "assets/story/chapter7/7-1.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "再无国度",
+      "image": "assets/story/chapter7/7-1.png"
+    }
+  ],
+  "c7_l1_after": [
+    {
+      "speaker": "Narrator",
+      "text": "路仍向前",
+      "image": "assets/story/chapter7/7-2.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "却再无人归来",
+      "image": "assets/story/chapter7/7-2.png"
+    }
+  ],
+  "c7_l2_after": [
+    {
+      "speaker": "阿拉贡",
+      "text": "这里曾有人居住",
+      "image": "assets/story/chapter7/7-3.png"
+    },
+    {
+      "speaker": "精灵使者",
+      "text": "很久以前",
+      "image": "assets/story/chapter7/7-3.png"
+    }
+  ],
+  "c7_l3_after": [
+    {
+      "speaker": "主角",
+      "text": "还有人来过这里吗？",
+      "image": "assets/story/chapter7/7-4.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "来过",
+      "image": "assets/story/chapter7/7-4.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "后来呢？",
+      "image": "assets/story/chapter7/7-4.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "加百列没有回答",
+      "image": "assets/story/chapter7/7-4.png"
+    }
+  ],
+  "c7_l4_after": [
+    {
+      "speaker": "Narrator",
+      "text": "枯树仍在",
+      "image": "assets/story/chapter7/7-5.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "春天却忘记了它",
+      "image": "assets/story/chapter7/7-5.png"
+    }
+  ],
+  "c7_l5_after": [
+    {
+      "speaker": "阿拉贡",
+      "text": "这里曾有一座城",
+      "image": "assets/story/chapter7/7-6.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "后来呢？",
+      "image": "assets/story/chapter7/7-6.png"
+    },
+    {
+      "speaker": "阿拉贡",
+      "text": "……不知道",
+      "image": "assets/story/chapter7/7-6.png"
+    }
+  ],
+  "c7_l6_after": [
+    {
+      "speaker": "Narrator",
+      "text": "精灵使者拾起一朵白花",
+      "image": "assets/story/chapter7/7-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "她静静望了很久",
+      "image": "assets/story/chapter7/7-7.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "又轻轻放下",
+      "image": "assets/story/chapter7/7-7.png"
+    }
+  ],
+  "c7_l7_after": [
+    {
+      "speaker": "Narrator",
+      "text": "主角停下脚步",
+      "image": "assets/story/chapter7/7-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "远方",
+      "image": "assets/story/chapter7/7-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "仿佛站着一个人",
+      "image": "assets/story/chapter7/7-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "再次望去",
+      "image": "assets/story/chapter7/7-8.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "那里空无一物",
+      "image": "assets/story/chapter7/7-8.png"
+    }
+  ],
+  "c7_l8_after": [
+    {
+      "speaker": "加百列",
+      "text": "快到了",
+      "image": "assets/story/chapter7/7-9.png"
+    },
+    {
+      "speaker": "主角",
+      "text": "你认识他吗？",
+      "image": "assets/story/chapter7/7-9.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "不认识",
+      "image": "assets/story/chapter7/7-9.png"
+    },
+    {
+      "speaker": "加百列",
+      "text": "从未见过",
+      "image": "assets/story/chapter7/7-9.png"
+    }
+  ],
+  "c7_l9_after": [
+    {
+      "speaker": "Narrator",
+      "text": "山巅之上",
+      "image": "assets/story/chapter7/7-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "一道身影静静坐在那里",
+      "image": "assets/story/chapter7/7-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "他没有回头",
+      "image": "assets/story/chapter7/7-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "却轻轻开口",
+      "image": "assets/story/chapter7/7-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "你一定会来",
+      "image": "assets/story/chapter7/7-10.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "你又来了",
+      "image": "assets/story/chapter7/7-10.png"
+    }
+  ],
+  "boss_莱索恩": [
+    {
+      "speaker": "莱索恩",
+      "text": "终焉不是毁灭",
+      "image": "assets/story/chapter7/boss.png"
+    },
+    {
+      "speaker": "莱索恩",
+      "text": "终焉只是问题",
+      "image": "assets/story/chapter7/boss.png"
+    },
+    {
+      "speaker": "莱索恩",
+      "text": "搞不好还是开始",
+      "image": "assets/story/chapter7/boss.png"
+    },
+    {
+      "speaker": "System",
+      "text": "章节 Boss 登场：莱索恩",
+      "image": "assets/story/chapter7/boss.png"
+    }
+  ],
+  "c7_l10_after": [
+    {
+      "speaker": "？？",
+      "text": "回到一切的开始",
+      "image": "assets/story/chapter7/return_beginning.png"
+    },
+    {
+      "speaker": "莱索恩",
+      "text": "我说了",
+      "image": "assets/story/chapter7/lysorn_end.png"
+    },
+    {
+      "speaker": "莱索恩",
+      "text": "终焉只是开始",
+      "image": "assets/story/chapter7/lysorn_end.png"
+    },
+    {
+      "speaker": "莱索恩",
+      "text": "你要醒了",
+      "image": "assets/story/chapter7/lysorn_end.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "你从梦境惊醒",
+      "image": "assets/story/chapter7/awakening.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "梦境结束",
+      "image": "assets/story/chapter7/awakening.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "你获得了邪神赐福",
+      "image": "assets/story/chapter7/awakening.png"
+    }
+  ],
+  "boss_米凯尔与阿格尼": [
+    {
+      "speaker": "Narrator",
+      "text": "世界已经结束",
+      "image": "assets/story/chapter8/world_rematch.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "可记忆仍未结束",
+      "image": "assets/story/chapter8/world_rematch.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "远方",
+      "image": "assets/story/chapter8/world_rematch.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "两道身影缓缓浮现",
+      "image": "assets/story/chapter8/world_rematch.png"
+    },
+    {
+      "speaker": "System",
+      "text": "世界复战：米凯尔与阿格尼",
+      "image": "assets/story/chapter8/world_rematch.png"
+    }
+  ],
+  "c8_l2_after": [
+    {
+      "speaker": "Narrator",
+      "text": "你已经回答了他们的问题",
+      "image": "assets/story/chapter8/world_rematch_after.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "现在",
+      "image": "assets/story/chapter8/world_rematch_after.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "轮到你了",
+      "image": "assets/story/chapter8/world_rematch_after.png"
+    }
+  ],
+  "c8_l9_after": [
+    {
+      "speaker": "Narrator",
+      "text": "你来到了一片不属于原本世界的空间",
+      "image": "assets/story/chapter8/void_island.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "来到了虚空中的孤岛",
+      "image": "assets/story/chapter8/void_island.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "除了庞大的能量",
+      "image": "assets/story/chapter8/void_island.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "只剩虚无",
+      "image": "assets/story/chapter8/void_island.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "这似乎是很久很久以前",
+      "image": "assets/story/chapter8/void_island.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "似乎是一切的开始",
+      "image": "assets/story/chapter8/void_island.png"
+    }
+  ],
+  "ending": [
+    {
+      "speaker": "Narrator",
+      "text": "我已经在这里太久了",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "我已经忘掉了一切",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "我似乎可以把这里的气捏成生命",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "我模糊地记得那些生命的样子",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "我似乎还记得什么",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "我不知道做些什么了",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "也许可以捏出一个蓝色的星球",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "容纳我捏出的生命",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "System",
+      "text": "原来如此",
+      "image": "assets/story/chapter8/ending.png"
+    },
+    {
+      "speaker": "System",
+      "text": "游戏结束",
+      "image": "assets/story/chapter8/ending.png"
+    }
+  ],
+  "boss_最终问题": [
+    {
+      "speaker": "Narrator",
+      "text": "你来到了一片空间",
+      "image": "assets/story/chapter8/void_island.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "来到了虚空中的孤岛",
+      "image": "assets/story/chapter8/void_island.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "除了庞大的能量",
+      "image": "assets/story/chapter8/void_island.png"
+    },
+    {
+      "speaker": "Narrator",
+      "text": "只剩虚无",
+      "image": "assets/story/chapter8/void_island.png"
+    }
+  ]
+}
