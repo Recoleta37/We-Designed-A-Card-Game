@@ -58,6 +58,7 @@ private:
         QLabel* nameLabel = nullptr;
         QProgressBar* hpBar = nullptr;
         QLabel* shieldLabel = nullptr;
+        QLabel* statusLabel = nullptr; ///< 状态图标文字（如"石1 脆2"）
     };
     std::array<BoardCard, 10> boardCards{};
     // [Recoleta37] 技能牌改为 QFrame + QLabel，支持富文本
@@ -65,6 +66,7 @@ private:
         QFrame* frame = nullptr;
         QLabel* sourceLabel = nullptr;
         QLabel* nameLabel = nullptr;
+        QLabel* echoLabel = nullptr;  ///< 回响标识（如"回响×2"，无回响时隐藏）
         QLabel* descLabel = nullptr;
         bool checked = false;
     };
@@ -76,8 +78,9 @@ private:
         QFrame* frame = nullptr;
         QLabel* nameLabel = nullptr;
         QLabel* descLabel = nullptr;
+        QLabel* usesLabel = nullptr;  ///< 剩余次数标签（"×3" / "∞" / 隐藏）
     };
-    std::array<RelicCard, 5> relicCards{};
+    std::array<RelicCard, 7> relicCards{};
     QPushButton* skillCastButton = nullptr;
     QPushButton* roundButton = nullptr;
     QPushButton* nextButton = nullptr;

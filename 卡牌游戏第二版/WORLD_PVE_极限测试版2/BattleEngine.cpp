@@ -61,9 +61,11 @@ UnitTemplate BattleEngine::heroTemplate(int chapterIndex) const
     QVector<QPair<int, int>> stats = {{30,5},{30,5},{45,8},{60,12},{80,16},{110,24},{140,35},{180,50},{250,70}};
     int idx = std::min(chapterIndex, int(stats.size()) - 1);
     int bonus = chapterIndex * 2;
-    int worldHp = relics_.contains(QStringLiteral("世界")) ? 100 : 0;
-    int worldAtk = relics_.contains(QStringLiteral("世界")) ? 50 : 0;
-    return {QStringLiteral("主角"), QStringLiteral("命运"), QStringLiteral("中排"), QStringLiteral("命运之刃"), stats[idx].first + bonus + worldHp + heroHpGrowth_, stats[idx].second + bonus + worldAtk};
+    int worldHp = hasRelic(QStringLiteral("世界")) ? 100 : 0;
+    int worldAtk = hasRelic(QStringLiteral("世界")) ? 50 : 0;
+    return {QStringLiteral("主角"), QStringLiteral("命运"), QStringLiteral("中排"), QStringLiteral("命运之刃"),
+            stats[idx].first + bonus + worldHp + heroHpGrowth_ + heroPermanentHpBonus_,
+            stats[idx].second + bonus + worldAtk + heroPermanentAtkBonus_};
 }
 
 UnitTemplate BattleEngine::templateByName(const QString& name) const
@@ -239,6 +241,9 @@ void BattleEngine::saveChapterSnapshot()
     snapshotSkillsUsedThisTurn_ = skillsUsedThisTurn_;
     snapshotHeroHpGrowth_ = heroHpGrowth_;
     snapshotFateBladeHealBonus_ = fateBladeHealBonus_;
+    snapshotHeroPermanentAtkBonus_ = heroPermanentAtkBonus_;
+    snapshotHeroPermanentHpBonus_ = heroPermanentHpBonus_;
+    snapshotGoldAltarPurchases_ = goldAltarPurchases_;
     snapshotInBattle_ = inBattle_;
     snapshotEndingShown_ = endingShown_;
     saveBoard(playerUnits_, snapshotPlayerUnits_);
@@ -277,6 +282,9 @@ void BattleEngine::restoreChapterSnapshot()
     skillsUsedThisTurn_ = snapshotSkillsUsedThisTurn_;
     heroHpGrowth_ = snapshotHeroHpGrowth_;
     fateBladeHealBonus_ = snapshotFateBladeHealBonus_;
+    heroPermanentAtkBonus_ = snapshotHeroPermanentAtkBonus_;
+    heroPermanentHpBonus_ = snapshotHeroPermanentHpBonus_;
+    goldAltarPurchases_ = snapshotGoldAltarPurchases_;
     inBattle_ = snapshotInBattle_;
     endingShown_ = snapshotEndingShown_;
     restoreBoard(playerUnits_, snapshotPlayerUnits_);
@@ -297,10 +305,13 @@ void BattleEngine::restoreChapterSnapshot()
 void BattleEngine::resetRunState()
 {
     battleRound_ = 1;
-    gold_ = 0;
+    gold_ = 20;
     skillsUsedThisTurn_ = 0;
     heroHpGrowth_ = 0;
     fateBladeHealBonus_ = 0;
+    heroPermanentAtkBonus_ = 0;
+    heroPermanentHpBonus_ = 0;
+    goldAltarPurchases_ = 0;
     inBattle_ = false;
     endingShown_ = false;
     chapterSnapshotValid_ = false;
@@ -321,20 +332,32 @@ void BattleEngine::resetRunState()
 QString BattleEngine::relicDescription(const QString& relic) const
 {
     static const QMap<QString, QString> descriptions = {
-        {QStringLiteral("铁剑"), QStringLiteral("友军攻击+2")},
-        {QStringLiteral("旧盾"), QStringLiteral("战斗开始友军生命+8")},
-        {QStringLiteral("旅人靴"), QStringLiteral("第一回合友军攻击+3")},
-        {QStringLiteral("铜钱袋"), QStringLiteral("胜利后金币+2")},
-        {QStringLiteral("破碎护符"), QStringLiteral("主角首次死亡保留1血")},
-        {QStringLiteral("战鼓"), QStringLiteral("战斗开始友军攻击+2")},
-        {QStringLiteral("医疗包"), QStringLiteral("回合开始治疗主角5")},
-        {QStringLiteral("魔法书"), QStringLiteral("技能伤害+3")},
-        {QStringLiteral("幸运骰子"), QStringLiteral("战斗开始随机友军攻击+5")},
-        {QStringLiteral("人王徽记"), QStringLiteral("人族单位攻击+4")},
-        {QStringLiteral("猩红酒杯"), QStringLiteral("吸血鬼造成伤害后回复3")},
-        {QStringLiteral("精灵树枝"), QStringLiteral("精灵族死亡时伤害敌方全体")},
-        {QStringLiteral("圣河水滴"), QStringLiteral("天使治疗量+5")},
-        {QStringLiteral("魔王残角"), QStringLiteral("魔族攻击+6，生命-5")},
+        // --- 普通遗物（修改后）---
+        {QStringLiteral("铁剑"), QStringLiteral("每回合开始时，己方全体获得2点攻击")},
+        {QStringLiteral("旧盾"), QStringLiteral("战斗开始时，己方全体获得5点护盾")},
+        {QStringLiteral("战鼓"), QStringLiteral("战斗开始时，己方全体获得5点攻击")},
+        {QStringLiteral("铜钱袋"), QStringLiteral("战斗胜利后，获得5金币")},
+        {QStringLiteral("破碎护符"), QStringLiteral("主角死亡时，免死并将生命回复至1点（每场战斗最多生效一次）")},
+        {QStringLiteral("医疗包"), QStringLiteral("每回合开始时，主角回复3点生命")},
+        {QStringLiteral("魔法书"), QStringLiteral("己方全体的技能伤害增加3点")},
+        {QStringLiteral("幸运骰子"), QStringLiteral("战斗开始时，己方随机1个单位获得10点攻击")},
+        {QStringLiteral("人王徽记"), QStringLiteral("每回合开始时，己方人族单位获得4点攻击")},
+        {QStringLiteral("猩红酒杯"), QStringLiteral("己方吸血鬼单位造成伤害时，回复3点生命")},
+        {QStringLiteral("精灵树枝"), QStringLiteral("己方精灵族单位死亡时，对敌方全体造成5点伤害")},
+        {QStringLiteral("圣河水滴"), QStringLiteral("己方天使的治疗技能额外回复4点生命")},
+        {QStringLiteral("魔王残角"), QStringLiteral("战斗开始时，己方魔族单位失去5点生命，获得6点攻击")},
+        // --- 新增普通遗物 ---
+        {QStringLiteral("断爪"), QStringLiteral("战斗开始时，给予敌方全体2层⌈脆弱⌋")},
+        {QStringLiteral("许愿骨"), QStringLiteral("立即获得3次遗物奖励")},
+        {QStringLiteral("铁玫瑰"), QStringLiteral("战斗开始时，己方全体获得1层⌈荆棘⌋")},
+        {QStringLiteral("黄金祭坛"), QStringLiteral("boss关卡开始前，可选择花费金币换取遗物奖励")},
+        {QStringLiteral("染血符咒"), QStringLiteral("主角失去5点生命，永久增加1点攻击力")},
+        {QStringLiteral("锈蚀胸甲"), QStringLiteral("每回合开始时，主角获得5点护盾")},
+        {QStringLiteral("鎏金坩埚"), QStringLiteral("消耗20金币，生成一张主角的特殊技能⌈铸剑⌋")},
+        {QStringLiteral("死亡圣契"), QStringLiteral("主角永久失去5点生命上限，将己方全体的生命回复至上限")},
+        {QStringLiteral("高塔石碑"), QStringLiteral("战斗开始时，己方全体获得1层⌈回响⌋")},
+        {QStringLiteral("石像鬼雕像"), QStringLiteral("战斗开始时，给予敌方全体1层⌈石化⌋")},
+        // --- 剧情遗物（不变）---
         {QStringLiteral("跃动赤心"), QStringLiteral("回合开始治疗全体友军10")},
         {QStringLiteral("精灵王冠"), QStringLiteral("友军首次死亡复苏为8血")},
         {QStringLiteral("圣洁六翼"), QStringLiteral("战斗开始全体友军护盾+20")},
@@ -373,7 +396,8 @@ QString BattleEngine::skillDescription(const QString& skill) const
         {QStringLiteral("狂暴"), QStringLiteral("最高攻击友军攻击+10，生命-5")},
         {QStringLiteral("魔焰"), QStringLiteral("敌方全体受到10点伤害")},
         {QStringLiteral("邪神赐福"), QStringLiteral("本回合所有友军攻击翻倍")},
-        {QStringLiteral("命运之刃"), QStringLiteral("造成主角攻击力伤害，并治疗全体友军")}
+        {QStringLiteral("命运之刃"), QStringLiteral("造成主角攻击力伤害，并治疗全体友军")},
+        {QStringLiteral("铸剑"), QStringLiteral("主角下一次造成的伤害变为3倍（次数可叠加）")}
     };
     return descriptions.value(skill, QStringLiteral("未登记技能效果"));
 }
@@ -607,14 +631,31 @@ void BattleEngine::dealDamage(UnitInstance* target, int amount, const QString& r
     int shieldHit = std::min(target->shield, amount);
     target->shield -= shieldHit;
     int hpDmg = amount - shieldHit;
+
+    // 脆弱：受到的伤害+50%（向下取整）
+    if (hpDmg > 0 && hasStatus(target, QStringLiteral("脆弱")))
+        hpDmg = int(hpDmg * 1.5);
+
+    // 铸剑：主角技能伤害×3（由 castSkill 激活和清除，支持 AOE 全体翻倍）
+    if (hpDmg > 0 && forgeActive_)
+        hpDmg *= 3;
+
+    int totalDmg = shieldHit + hpDmg;
     target->hp -= hpDmg;
-    logLines_ << QStringLiteral("%1 造成 %2 伤害 -> %3").arg(reason).arg(amount).arg(target->base.name);
+    logLines_ << QStringLiteral("%1 造成 %2 伤害 -> %3").arg(reason).arg(totalDmg).arg(target->base.name);
     while (logLines_.size() > 80) logLines_.removeFirst();
     if (hpDmg > 0)
     {
         int tidx = boardCardIndexOf(target);
         if (tidx >= 0)
             pendingCombatEvents_.push_back({CombatEvent::Damage, tidx, boardCardIndexOf(source), hpDmg, eventBatchId_});
+
+        // 荆棘：受到攻击时反伤=层数（不触发荆棘链）
+        if (source && hasStatus(target, QStringLiteral("荆棘")) && reason != QStringLiteral("荆棘"))
+        {
+            int reflect = statusLayers(target, QStringLiteral("荆棘"));
+            dealDamage(source, reflect, QStringLiteral("荆棘"), target);
+        }
     }
 }
 
@@ -636,6 +677,87 @@ void BattleEngine::addShield(UnitInstance* target, int amount, const QString& /*
         pendingCombatEvents_.push_back({CombatEvent::ShieldGain, idx, -1, amount, eventBatchId_});
 }
 
+// ============================================================================
+// 状态效果
+// ============================================================================
+
+void BattleEngine::addStatus(UnitInstance* target, const QString& name, int layers, bool decays)
+{
+    if (!target || layers <= 0) return;
+    // 已有同名状态则叠加层数
+    for (int i = 0; i < target->statuses.size(); ++i)
+    {
+        if (target->statuses[i].name == name)
+        {
+            target->statuses[i].layers += layers;
+            return;
+        }
+    }
+    target->statuses.push_back({name, layers, decays});
+}
+
+void BattleEngine::removeStatus(UnitInstance* target, const QString& name)
+{
+    if (!target) return;
+    for (int i = 0; i < target->statuses.size(); ++i)
+    {
+        if (target->statuses[i].name == name)
+        {
+            target->statuses.removeAt(i);
+            return;
+        }
+    }
+}
+
+bool BattleEngine::hasStatus(const UnitInstance* target, const QString& name) const
+{
+    if (!target) return false;
+    for (const StatusEffect& s : target->statuses)
+    {
+        if (s.name == name && s.layers > 0) return true;
+    }
+    return false;
+}
+
+int BattleEngine::statusLayers(const UnitInstance* target, const QString& name) const
+{
+    if (!target) return 0;
+    for (const StatusEffect& s : target->statuses)
+    {
+        if (s.name == name) return s.layers;
+    }
+    return 0;
+}
+
+void BattleEngine::tickStatuses()
+{
+    auto tick = [this](std::array<UnitInstance*, 5>& board, const QString& side) {
+        for (UnitInstance* u : board)
+        {
+            if (!u) continue;
+            for (int i = u->statuses.size() - 1; i >= 0; --i)
+            {
+                if (!u->statuses[i].decays) continue;
+                appendLog(QStringLiteral("状态衰减：%1 %2 %3→%4")
+                              .arg(side)
+                              .arg(u->base.name)
+                              .arg(u->statuses[i].name)
+                              .arg(u->statuses[i].layers)
+                              .arg(u->statuses[i].layers - 1));
+                --u->statuses[i].layers;
+                if (u->statuses[i].layers <= 0)
+                {
+                    appendLog(QStringLiteral("状态消除：%1 %2 %3")
+                                  .arg(side).arg(u->base.name).arg(u->statuses[i].name));
+                    u->statuses.removeAt(i);
+                }
+            }
+        }
+    };
+    tick(playerUnits_, QStringLiteral("己方"));
+    tick(enemyUnits_, QStringLiteral("敌方"));
+}
+
 void BattleEngine::allAttack(std::array<UnitInstance*, 5>& attackers,
                               std::array<UnitInstance*, 5>& defenders,
                               bool playerSide)
@@ -643,12 +765,38 @@ void BattleEngine::allAttack(std::array<UnitInstance*, 5>& attackers,
     nextEventBatch();
     for (UnitInstance* u : alive(attackers))
     {
+        // 石化：本回合无法攻击
+        if (hasStatus(u, QStringLiteral("石化"))) continue;
+
+        // 铸剑：主角普通攻击也触发 ×3，消耗一层
+        if (playerSide && u->hero && hasStatus(u, QStringLiteral("铸剑")))
+        {
+            forgeActive_ = true;
+            const int remaining = statusLayers(u, QStringLiteral("铸剑"));
+            if (remaining <= 1)
+                removeStatus(u, QStringLiteral("铸剑"));
+            else
+            {
+                for (int i = 0; i < u->statuses.size(); ++i)
+                {
+                    if (u->statuses[i].name == QStringLiteral("铸剑"))
+                    {
+                        --u->statuses[i].layers;
+                        break;
+                    }
+                }
+            }
+            appendLog(QStringLiteral("铸剑：本次攻击伤害变为3倍（剩余%1次）。").arg(remaining - 1));
+        }
+
         UnitInstance* target = firstAlive(defenders);
-        if (!target) return;
+        if (!target) { forgeActive_ = false; return; }
         int dmg = u->base.atk;
-        if (playerSide && relics_.contains(QStringLiteral("世界"))) dmg += 50;
+        if (playerSide && hasRelic(QStringLiteral("世界"))) dmg += 50;
         dealDamage(target, dmg, u->base.name, u);
-        if (playerSide && relics_.contains(QStringLiteral("猩红酒杯")) && u->base.faction == QStringLiteral("吸血鬼")) heal(u, 3);
+        if (playerSide && hasRelic(QStringLiteral("猩红酒杯")) && u->base.faction == QStringLiteral("吸血鬼")) heal(u, 3);
+
+        forgeActive_ = false;
         if (refreshCallback_) refreshCallback_();
     }
 }
@@ -850,7 +998,7 @@ void BattleEngine::generateSkills()
         ++u->aliveRounds;
         if (u->aliveRounds % 2 == 0 && skillSlots_.size() < kMaxSkills)
         {
-            skillSlots_.push_back({u->base.skill, u->base.name});
+            skillSlots_.push_back({u->base.skill, u->base.name, u->base.faction});
             logLines_ << QStringLiteral("%1 生成技能：%2").arg(u->base.name, u->base.skill);
             while (logLines_.size() > 80) logLines_.removeFirst();
         }
@@ -862,61 +1010,104 @@ void BattleEngine::castSkill(const QString& name, int chapterIndex)
     nextEventBatch();
     logLines_ << QStringLiteral("释放技能：%1").arg(name);
     while (logLines_.size() > 80) logLines_.removeFirst();
-    int bonus = relics_.contains(QStringLiteral("魔法书")) ? 3 : 0;
-    // 查找技能来源棋子（用于伤害动画闪烁）
+    int bonus = hasRelic(QStringLiteral("魔法书")) ? 3 : 0;
+    // 查找技能来源棋子（用于伤害动画闪烁）和阵营（用于圣河水滴）
     UnitInstance* skillSource = nullptr;
+    QString skillFaction;
     for (const auto& sk : skillSlots_) {
         if (sk.name == name) {
+            skillFaction = sk.faction;
             for (UnitInstance* u : playerUnits_) {
                 if (u && u->base.name == sk.source) { skillSource = u; break; }
             }
             break;
         }
     }
-    if (name == QStringLiteral("斩击")) dealDamage(firstAlive(enemyUnits_), 8 + bonus, name, skillSource);
-    else if (name == QStringLiteral("箭雨") || name == QStringLiteral("魔焰"))
+
+    // 铸剑 buff：主角释放技能前检查铸剑层数，每层提供一次 ×3，消耗一层
+    if (skillSource && skillSource->hero && hasStatus(skillSource, QStringLiteral("铸剑")))
     {
-        for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, (name == QStringLiteral("箭雨") ? 4 : 10) + bonus, name, skillSource);
-    }
-    else if (name == QStringLiteral("鼓舞")) for (UnitInstance* u : alive(playerUnits_)) u->base.atk += 2;
-    else if (name == QStringLiteral("守护") && playerUnits_[kHeroSlot]) addShield(playerUnits_[kHeroSlot], 10, QStringLiteral("守护"));
-    else if (name == QStringLiteral("治疗术")) heal(mostWounded(playerUnits_), 12 + (relics_.contains(QStringLiteral("圣河水滴")) ? 5 : 0));
-    else if (name == QStringLiteral("吸血")) { dealDamage(firstAlive(enemyUnits_), 10 + bonus, name, skillSource); heal(playerUnits_[kHeroSlot], 10); }
-    else if (name == QStringLiteral("血雾")) for (UnitInstance* e : alive(enemyUnits_)) e->base.atk = std::max(0, e->base.atk - 2);
-    else if (name == QStringLiteral("赤心爆发")) dealDamage(firstAlive(enemyUnits_), 20 + bonus, name, skillSource);
-    else if (name == QStringLiteral("永生之血")) heal(playerUnits_[kHeroSlot], 10);
-    else if (name == QStringLiteral("精灵箭")) dealDamage(firstAlive(enemyUnits_), 8 + bonus, name, skillSource);
-    else if (name == QStringLiteral("森语祝福"))
-    {
-        for (UnitInstance* u : alive(playerUnits_))
+        forgeActive_ = true;
+        const int remaining = statusLayers(skillSource, QStringLiteral("铸剑"));
+        if (remaining <= 1)
+            removeStatus(skillSource, QStringLiteral("铸剑"));
+        else
         {
-            u->base.atk += 2;
-            heal(u, 4);
+            // 减一层（addStatus 叠加逻辑不适用于减法，直接修改层数）
+            for (int i = 0; i < skillSource->statuses.size(); ++i)
+            {
+                if (skillSource->statuses[i].name == QStringLiteral("铸剑"))
+                {
+                    --skillSource->statuses[i].layers;
+                    break;
+                }
+            }
+        }
+        appendLog(QStringLiteral("铸剑：本次技能伤害变为3倍（剩余%1次）。").arg(remaining - 1));
+    }
+
+    // 回响：来源棋子每层回响额外打出一次
+    const int echoLayers = skillSource ? statusLayers(skillSource, QStringLiteral("回响")) : 0;
+    const int totalCasts = 1 + echoLayers;
+
+    for (int cast = 0; cast < totalCasts; ++cast)
+    {
+        if (name == QStringLiteral("斩击")) dealDamage(firstAlive(enemyUnits_), 8 + bonus, name, skillSource);
+        else if (name == QStringLiteral("箭雨") || name == QStringLiteral("魔焰"))
+        {
+            for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, (name == QStringLiteral("箭雨") ? 4 : 10) + bonus, name, skillSource);
+        }
+        else if (name == QStringLiteral("鼓舞")) for (UnitInstance* u : alive(playerUnits_)) u->base.atk += 2;
+        else if (name == QStringLiteral("守护") && playerUnits_[kHeroSlot]) addShield(playerUnits_[kHeroSlot], 10, QStringLiteral("守护"));
+        else if (name == QStringLiteral("治疗术")) heal(mostWounded(playerUnits_), 12 + ((hasRelic(QStringLiteral("圣河水滴")) && skillFaction == QStringLiteral("天使")) ? 4 : 0));
+        else if (name == QStringLiteral("吸血")) { dealDamage(firstAlive(enemyUnits_), 10 + bonus, name, skillSource); heal(playerUnits_[kHeroSlot], 10); }
+        else if (name == QStringLiteral("血雾")) for (UnitInstance* e : alive(enemyUnits_)) e->base.atk = std::max(0, e->base.atk - 2);
+        else if (name == QStringLiteral("赤心爆发")) dealDamage(firstAlive(enemyUnits_), 20 + bonus, name, skillSource);
+        else if (name == QStringLiteral("永生之血")) heal(playerUnits_[kHeroSlot], 10);
+        else if (name == QStringLiteral("精灵箭")) dealDamage(firstAlive(enemyUnits_), 8 + bonus, name, skillSource);
+        else if (name == QStringLiteral("森语祝福"))
+        {
+            for (UnitInstance* u : alive(playerUnits_))
+            {
+                u->base.atk += 2;
+                heal(u, 4);
+            }
+        }
+        else if (name == QStringLiteral("毒雾")) for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, 3 + bonus, name, skillSource);
+        else if (name == QStringLiteral("古木再生"))
+        {
+            heal(mostWounded(playerUnits_), 25);
+            heal(mostWounded(enemyUnits_), 25);
+        }
+        else if (name == QStringLiteral("古树根须")) { if (UnitInstance* u = lowestHp(playerUnits_)) addShield(u, 15, QStringLiteral("古树根须")); }
+        else if (name == QStringLiteral("藤蔓缠绕")) for (UnitInstance* e : alive(enemyUnits_)) e->base.atk = std::max(0, e->base.atk - 1);
+        else if (name == QStringLiteral("圣光")) for (UnitInstance* u : alive(playerUnits_)) heal(u, 8 + ((hasRelic(QStringLiteral("圣河水滴")) && skillFaction == QStringLiteral("天使")) ? 4 : 0));
+        else if (name == QStringLiteral("审判")) dealDamage(highestAtk(enemyUnits_), 25 + bonus, name, skillSource);
+        else if (name == QStringLiteral("六翼庇护")) for (UnitInstance* u : alive(playerUnits_)) addShield(u, 12, QStringLiteral("六翼庇护"));
+        else if (name == QStringLiteral("命运改写") && playerUnits_[kHeroSlot]) playerUnits_[kHeroSlot]->protectedDeath = true;
+        else if (name == QStringLiteral("圣河回响") && !skillSlots_.isEmpty() && skillSlots_.size() < kMaxSkills) skillSlots_.push_back(skillSlots_.last());
+        else if (name == QStringLiteral("火球")) dealDamage(firstAlive(enemyUnits_), 18 + bonus, name, skillSource);
+        else if (name == QStringLiteral("深渊爪击")) dealDamage(enemyUnits_[4] ? enemyUnits_[4] : firstAlive(enemyUnits_), 22 + bonus, name, skillSource);
+        else if (name == QStringLiteral("狂暴")) { if (UnitInstance* u = highestAtk(playerUnits_)) { u->base.atk += 10; u->hp -= 5; } }
+        else if (name == QStringLiteral("邪神赐福")) for (UnitInstance* u : alive(playerUnits_)) u->base.atk *= 2;
+        else if (name == QStringLiteral("命运之刃"))
+        {
+            dealDamage(firstAlive(enemyUnits_), playerUnits_[kHeroSlot] ? int(playerUnits_[kHeroSlot]->base.atk * (1.0 + chapterIndex * 0.1)) : 0, name, skillSource);
+            const int healAmount = 5 + fateBladeHealBonus_;
+            for (UnitInstance* u : alive(playerUnits_)) heal(u, healAmount);
+        }
+        else if (name == QStringLiteral("铸剑"))
+        {
+            // 铸剑技能：给主角叠加一层铸剑 buff（可叠加，每层使一次技能伤害×3）
+            if (UnitInstance* hero = playerUnits_[kHeroSlot])
+            {
+                addStatus(hero, QStringLiteral("铸剑"), 1, false);
+                appendLog(QStringLiteral("铸剑：主角获得一层铸剑（当前%1层）。").arg(statusLayers(hero, QStringLiteral("铸剑"))));
+            }
         }
     }
-    else if (name == QStringLiteral("毒雾")) for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, 3 + bonus, name, skillSource);
-    else if (name == QStringLiteral("古木再生"))
-    {
-        heal(mostWounded(playerUnits_), 25);
-        heal(mostWounded(enemyUnits_), 25);
-    }
-    else if (name == QStringLiteral("古树根须")) { if (UnitInstance* u = lowestHp(playerUnits_)) addShield(u, 15, QStringLiteral("古树根须")); }
-    else if (name == QStringLiteral("藤蔓缠绕")) for (UnitInstance* e : alive(enemyUnits_)) e->base.atk = std::max(0, e->base.atk - 1);
-    else if (name == QStringLiteral("圣光")) for (UnitInstance* u : alive(playerUnits_)) heal(u, 8 + (relics_.contains(QStringLiteral("圣河水滴")) ? 5 : 0));
-    else if (name == QStringLiteral("审判")) dealDamage(highestAtk(enemyUnits_), 25 + bonus, name, skillSource);
-    else if (name == QStringLiteral("六翼庇护")) for (UnitInstance* u : alive(playerUnits_)) addShield(u, 12, QStringLiteral("六翼庇护"));
-    else if (name == QStringLiteral("命运改写") && playerUnits_[kHeroSlot]) playerUnits_[kHeroSlot]->protectedDeath = true;
-    else if (name == QStringLiteral("圣河回响") && !skillSlots_.isEmpty() && skillSlots_.size() < kMaxSkills) skillSlots_.push_back(skillSlots_.last());
-    else if (name == QStringLiteral("火球")) dealDamage(firstAlive(enemyUnits_), 18 + bonus, name, skillSource);
-    else if (name == QStringLiteral("深渊爪击")) dealDamage(enemyUnits_[4] ? enemyUnits_[4] : firstAlive(enemyUnits_), 22 + bonus, name, skillSource);
-    else if (name == QStringLiteral("狂暴")) { if (UnitInstance* u = highestAtk(playerUnits_)) { u->base.atk += 10; u->hp -= 5; } }
-    else if (name == QStringLiteral("邪神赐福")) for (UnitInstance* u : alive(playerUnits_)) u->base.atk *= 2;
-    else if (name == QStringLiteral("命运之刃"))
-    {
-        dealDamage(firstAlive(enemyUnits_), playerUnits_[kHeroSlot] ? int(playerUnits_[kHeroSlot]->base.atk * (1.0 + chapterIndex * 0.1)) : 0, name, skillSource);
-        const int healAmount = 5 + fateBladeHealBonus_;
-        for (UnitInstance* u : alive(playerUnits_)) heal(u, healAmount);
-    }
+
+    forgeActive_ = false;
     if (refreshCallback_) refreshCallback_();
 }
 
@@ -1030,75 +1221,138 @@ void BattleEngine::showBossSkillIntro(const QString& bossName)
 void BattleEngine::applyRelicsStart()
 {
     nextEventBatch();
+
+    // ---- 每回合对所有存活友军生效 ----
     for (UnitInstance* u : alive(playerUnits_))
     {
-        if (relics_.contains(QStringLiteral("铁剑"))) u->base.atk += 2;
-        if (relics_.contains(QStringLiteral("旧盾")) && battleRound_ == 1) u->hp = std::min(u->hp + 8, u->base.hp);
-        if (relics_.contains(QStringLiteral("战鼓")) && battleRound_ == 1) u->base.atk += 2;
-        if (relics_.contains(QStringLiteral("旅人靴")) && battleRound_ == 1) u->base.atk += 3;
-        if (relics_.contains(QStringLiteral("幸运骰子")) && battleRound_ == 1 && QRandomGenerator::global()->bounded(4) == 0) u->base.atk += 5;
-        if (relics_.contains(QStringLiteral("人王徽记")) && u->base.faction == QStringLiteral("人族")) u->base.atk += 4;
-        if (relics_.contains(QStringLiteral("魔王残角")) && u->base.faction == QStringLiteral("魔族")) { u->base.atk += 6; u->hp -= 5; }
-        if (relics_.contains(QStringLiteral("圣洁六翼")) && battleRound_ == 1) addShield(u, 20, QStringLiteral("圣洁六翼"));
-        if (relics_.contains(QStringLiteral("邪神赐福"))) { u->base.atk = int(u->base.atk * 1.5); u->hp -= 3; }
+        if (hasRelic(QStringLiteral("铁剑"))) u->base.atk += 2;                                          // 每回合全体+2
+        if (hasRelic(QStringLiteral("人王徽记")) && u->base.faction == QStringLiteral("人族")) u->base.atk += 4;  // 每回合人族+4
+        if (hasRelic(QStringLiteral("邪神赐福"))) { u->base.atk = int(u->base.atk * 1.5); u->hp -= 3; }   // 邪神赐福
     }
+
+    // ---- 第1回合一次性效果 ----
+    if (battleRound_ == 1)
+    {
+        for (UnitInstance* u : alive(playerUnits_))
+        {
+            if (hasRelic(QStringLiteral("旧盾"))) addShield(u, 5, QStringLiteral("旧盾"));                // 全体+5护盾
+            if (hasRelic(QStringLiteral("战鼓"))) u->base.atk += 5;                                      // 全体+5攻击
+            if (hasRelic(QStringLiteral("圣洁六翼"))) addShield(u, 20, QStringLiteral("圣洁六翼"));       // 全体+20护盾
+            if (hasRelic(QStringLiteral("魔王残角")) && u->base.faction == QStringLiteral("魔族"))
+            {
+                u->hp -= 5;                                                                              // 魔族-5血
+                u->base.atk += 6;                                                                        // 魔族+6攻
+            }
+        }
+
+        // 幸运骰子：随机1个存活友军+10攻击
+        if (hasRelic(QStringLiteral("幸运骰子")))
+        {
+            QList<UnitInstance*> aliveList = alive(playerUnits_);
+            if (!aliveList.isEmpty())
+            {
+                UnitInstance* lucky = aliveList[QRandomGenerator::global()->bounded(aliveList.size())];
+                lucky->base.atk += 10;
+                appendLog(QStringLiteral("幸运骰子：%1获得10点攻击。").arg(lucky->base.name));
+            }
+        }
+
+        // 断爪：给予敌方全体2层脆弱
+        if (hasRelic(QStringLiteral("断爪")))
+        {
+            for (UnitInstance* e : alive(enemyUnits_))
+                addStatus(e, QStringLiteral("脆弱"), 2, true);
+            appendLog(QStringLiteral("断爪：敌方全体获得2层脆弱。"));
+            consumeRelic(QStringLiteral("断爪"));
+        }
+
+        // 铁玫瑰：己方全体获得1层荆棘
+        if (hasRelic(QStringLiteral("铁玫瑰")))
+        {
+            for (UnitInstance* u : alive(playerUnits_))
+                addStatus(u, QStringLiteral("荆棘"), 1, false);
+            appendLog(QStringLiteral("铁玫瑰：己方全体获得1层荆棘。"));
+        }
+
+        // 高塔石碑：己方全体获得1层回响
+        if (hasRelic(QStringLiteral("高塔石碑")))
+        {
+            for (UnitInstance* u : alive(playerUnits_))
+                addStatus(u, QStringLiteral("回响"), 1, false);
+            appendLog(QStringLiteral("高塔石碑：己方全体获得1层回响。"));
+            consumeRelic(QStringLiteral("高塔石碑"));
+        }
+
+        // 石像鬼雕像：给予敌方全体1层石化
+        if (hasRelic(QStringLiteral("石像鬼雕像")))
+        {
+            for (UnitInstance* e : alive(enemyUnits_))
+                addStatus(e, QStringLiteral("石化"), 1, true);
+            appendLog(QStringLiteral("石像鬼雕像：敌方全体获得1层石化。"));
+            consumeRelic(QStringLiteral("石像鬼雕像"));
+        }
+    }
+
+    // ---- 主角特效 ----
     if (UnitInstance* hero = playerUnits_[kHeroSlot])
     {
-        if (relics_.contains(QStringLiteral("医疗包"))) heal(hero, 5);
-        if (relics_.contains(QStringLiteral("世界")) && skillSlots_.size() < kMaxSkills) skillSlots_.push_back({QStringLiteral("命运之刃"), QStringLiteral("世界")});
+        if (hasRelic(QStringLiteral("医疗包"))) heal(hero, 3);                                          // 每回合治疗主角3
+        if (hasRelic(QStringLiteral("锈蚀胸甲"))) addShield(hero, 5, QStringLiteral("锈蚀胸甲"));        // 每回合主角+5护盾
+        if (hasRelic(QStringLiteral("世界")) && skillSlots_.size() < kMaxSkills)
+            skillSlots_.push_back({QStringLiteral("命运之刃"), QStringLiteral("世界"), QStringLiteral("命运")});
     }
-    if (relics_.contains(QStringLiteral("跃动赤心")))
+
+    // ---- 跃动赤心：每回合全体治疗10 ----
+    if (hasRelic(QStringLiteral("跃动赤心")))
     {
         for (UnitInstance* u : alive(playerUnits_)) heal(u, 10);
     }
+
+    // ---- 清理次数归零的遗物 ----
+    cleanupZeroUseRelics();
 }
 
-void BattleEngine::addRelic(const QString& relic)
+void BattleEngine::addRelic(const QString& relic, int uses, bool slotless, bool isStory)
 {
     if (relic.isEmpty()) return;
-    static const QMap<QString, int> storyRelicSlots = {
-        {QStringLiteral("跃动赤心"), 0},
-        {QStringLiteral("精灵王冠"), 1},
-        {QStringLiteral("圣洁六翼"), 2},
-        {QStringLiteral("邪神赐福"), 3}
-    };
-    if (storyRelicSlots.contains(relic))
-    {
-        const int slot = storyRelicSlots.value(relic);
-        while (relics_.size() <= slot) relics_ << QString();
-        relics_[slot] = relic;
-        relics_.removeAll(QString());
-        logLines_ << QStringLiteral("剧情遗物固定进入%1号槽：%2").arg(slot + 1).arg(relic);
-        while (logLines_.size() > 80) logLines_.removeFirst();
-        return;
-    }
-    if (relics_.contains(relic))
+
+    // 已拥有同名遗物（仅对非 slotless 永久遗物做去重检查）
+    if (!slotless && uses == -1 && hasRelic(relic))
     {
         logLines_ << QStringLiteral("已拥有遗物：%1").arg(relic);
         while (logLines_.size() > 80) logLines_.removeFirst();
         return;
     }
 
-    if (relics_.size() < kMaxRelics)
+    // 一次性遗物：不检查槽位，直接存储（触发由外部调用方决定，如许愿骨立即弹窗）
+    if (slotless)
     {
-        relics_ << relic;
+        relics_.push_back({relic, uses, slotless});
+        logLines_ << QStringLiteral("获得一次性遗物：%1").arg(relic);
+        while (logLines_.size() > 80) logLines_.removeFirst();
+        return;
+    }
+
+    // 槽位未满，直接添加
+    if (activeRelicCount() < kMaxRelics)
+    {
+        relics_.push_back({relic, uses, slotless});
         logLines_ << QStringLiteral("获得遗物：%1").arg(relic);
         while (logLines_.size() > 80) logLines_.removeFirst();
         return;
     }
 
+    // ---- 槽位已满，弹出替换对话框 ----
     QStringList replaceOptions;
     QVector<int> replaceIndexes;
     for (int i = 0; i < relics_.size(); ++i)
     {
-        if (isStoryRelic(relics_[i]))
-        {
+        if (isStoryRelic(relics_[i].name) || relics_[i].slotless)
             continue;
-        }
         replaceIndexes.push_back(i);
         replaceOptions << QStringLiteral("%1号槽：%2 - %3")
                               .arg(i + 1)
-                              .arg(relics_[i], relicDescription(relics_[i]));
+                              .arg(relics_[i].name, relicDescription(relics_[i].name));
     }
 
     if (replaceOptions.isEmpty())
@@ -1107,17 +1361,26 @@ void BattleEngine::addRelic(const QString& relic)
         while (logLines_.size() > 80) logLines_.removeFirst();
         QMessageBox::information(parentWidget_,
                                  QStringLiteral("遗物槽已满"),
-                                 QStringLiteral("5个遗物槽都被剧情遗物或世界占据，无法替换。\n未获得：%1").arg(relic));
+                                 QStringLiteral("遗物槽都被剧情遗物占据，无法替换。\n未获得：%1").arg(relic));
         return;
     }
 
-    /// [Recoleta37] 添加显式的"不替换"选项，避免用户只能靠取消来放弃
-    replaceOptions << QStringLiteral("—— 不替换，放弃此遗物 ——");
+    const QString abandonText = isStory
+        ? QStringLiteral("—— 放弃此遗物（警告：这是剧情遗物，放弃后无法再次获得！） ——")
+        : QStringLiteral("—— 不替换，放弃此遗物 ——");
+    replaceOptions << abandonText;
+
+    const QString dialogTitle = isStory
+        ? QStringLiteral("选择替换遗物槽 - 注意：这是剧情遗物！")
+        : QStringLiteral("选择替换遗物槽");
+    const QString dialogText = isStory
+        ? QStringLiteral("遗物槽已满。这是剧情遗物，放弃后无法再次获得。请选择要替换的位置：")
+        : QStringLiteral("遗物槽已满。选择要替换的位置，或选择「不替换」放弃：");
 
     bool ok = false;
     QString choice = QInputDialog::getItem(parentWidget_,
-                                           QStringLiteral("选择替换遗物槽"),
-                                           QStringLiteral("遗物槽已满。选择要替换的位置，或选择「不替换」放弃："),
+                                           dialogTitle,
+                                           dialogText,
                                            replaceOptions,
                                            0,
                                            false,
@@ -1133,9 +1396,9 @@ void BattleEngine::addRelic(const QString& relic)
     if (chosen >= 0 && chosen < replaceIndexes.size())
     {
         int relicIndex = replaceIndexes[chosen];
-        logLines_ << QStringLiteral("替换遗物：%1 -> %2").arg(relics_[relicIndex], relic);
+        logLines_ << QStringLiteral("替换遗物：%1 -> %2").arg(relics_[relicIndex].name, relic);
         while (logLines_.size() > 80) logLines_.removeFirst();
-        relics_[relicIndex] = relic;
+        relics_[relicIndex] = {relic, uses, slotless};
     }
     else
     {
@@ -1149,13 +1412,85 @@ void BattleEngine::tryFuseWorld()
     QStringList needed = {QStringLiteral("圣洁六翼"), QStringLiteral("精灵王冠"), QStringLiteral("邪神赐福"), QStringLiteral("跃动赤心")};
     for (const QString& n : needed)
     {
-        if (!relics_.contains(n)) return;
+        if (!hasRelic(n)) return;
     }
-    if (relics_.contains(QStringLiteral("世界"))) return;
-    relics_.clear();
-    relics_ << QStringLiteral("世界");
+    if (hasRelic(QStringLiteral("世界"))) return;
+
+    // 移除四件剧情遗物
+    for (const QString& n : needed)
+    {
+        for (int i = 0; i < relics_.size(); ++i)
+        {
+            if (relics_[i].name == n)
+            {
+                relics_.removeAt(i);
+                break;
+            }
+        }
+    }
+    relics_.push_back({QStringLiteral("世界"), -1, false});
     logLines_ << QStringLiteral("四件剧情遗物融合为：世界");
     while (logLines_.size() > 80) logLines_.removeFirst();
+}
+
+// ============================================================================
+// 遗物辅助方法
+// ============================================================================
+
+bool BattleEngine::hasRelic(const QString& name) const
+{
+    for (const RelicInstance& r : relics_)
+    {
+        if (r.name == name && r.uses != 0) return true;
+    }
+    return false;
+}
+
+int BattleEngine::relicUses(const QString& name) const
+{
+    for (const RelicInstance& r : relics_)
+    {
+        if (r.name == name) return r.uses;
+    }
+    return 0;
+}
+
+bool BattleEngine::consumeRelic(const QString& name)
+{
+    for (int i = 0; i < relics_.size(); ++i)
+    {
+        if (relics_[i].name == name && relics_[i].uses > 0)
+        {
+            --relics_[i].uses;
+            if (relics_[i].uses == 0)
+            {
+                logLines_ << QStringLiteral("遗物次数耗尽：%1").arg(name);
+                while (logLines_.size() > 80) logLines_.removeFirst();
+                return true;  // 调用方应随后调用 cleanupZeroUseRelics
+            }
+            return false;
+        }
+    }
+    return false;  // 未找到或 uses==-1(永久)
+}
+
+void BattleEngine::cleanupZeroUseRelics()
+{
+    for (int i = relics_.size() - 1; i >= 0; --i)
+    {
+        if (relics_[i].uses == 0)
+            relics_.removeAt(i);
+    }
+}
+
+int BattleEngine::activeRelicCount() const
+{
+    int count = 0;
+    for (const RelicInstance& r : relics_)
+    {
+        if (!r.slotless && r.uses != 0) ++count;
+    }
+    return count;
 }
 
 // ============================================================================
@@ -1229,6 +1564,9 @@ void BattleEngine::setupBattle(int chapterIndex, int levelIndex)
     }
     if (isMechanicBossName(enemyName)) showBossSkillIntro(enemyName);
 
+    // 战斗开始：触发第1回合遗物效果（此时敌我双方均已部署）
+    applyRelicsStart();
+
     inBattle_ = true;
     if (refreshCallback_) refreshCallback_();
 }
@@ -1271,6 +1609,7 @@ void BattleEngine::setupWorldEvent(int chapterIndex, int& levelIndex)
             enemyUnits_[3] = createUnit(makeEnemyTemplate(QStringLiteral("阿格尼"), true, chapterIndex, levelIndex), false, true);
             showBossSkillIntro(QStringLiteral("米凯尔"));
             showBossSkillIntro(QStringLiteral("阿格尼"));
+            applyRelicsStart();
             inBattle_ = true;
             if (refreshCallback_) refreshCallback_();
         };
@@ -1286,12 +1625,13 @@ void BattleEngine::setupWorldEvent(int chapterIndex, int& levelIndex)
     }
     if (levelIndex == 3)
     {
-        addRelic(QStringLiteral("圣洁六翼"));
-        addRelic(QStringLiteral("精灵王冠"));
+        addRelic(QStringLiteral("圣洁六翼"), -1, false, true);
+        addRelic(QStringLiteral("精灵王冠"), -1, false, true);
         tryFuseWorld();
     }
     if (levelIndex == 9)
     {
+        showGoldAltar();  // 决战前最后一次购买机会
         bool passed = false;
         while (!passed)
         {
@@ -1369,7 +1709,7 @@ void BattleEngine::finishLevel(int chapterIndex, int levelIndex)
 {
     inBattle_ = false;
     gold_ += 5 + chapterIndex;
-    if (relics_.contains(QStringLiteral("铜钱袋"))) gold_ += 2;
+    if (hasRelic(QStringLiteral("铜钱袋"))) gold_ += 5;
     appendLog(QStringLiteral("胜利：获得金币。"));
 
     QString bossRelic;
@@ -1396,7 +1736,20 @@ void BattleEngine::finishLevel(int chapterIndex, int levelIndex)
             appendLog(QStringLiteral("剧情角色加入：%1").arg(rescuedName));
         }
     }
-    if (levelIndex == 10) growHeroAfterChapterBoss();
+    if (levelIndex == 10)
+    {
+        growHeroAfterChapterBoss();
+        if (chapterIndex < 8 && playerUnits_[kHeroSlot])
+        {
+            UnitInstance* h = playerUnits_[kHeroSlot];
+            const int halfHp = h->base.hp / 2;
+            if (h->hp < halfHp)
+            {
+                h->hp = halfHp;
+                appendLog(QStringLiteral("Boss战胜利：主角生命回复至一半（%1）。").arg(halfHp));
+            }
+        }
+    }
     if (refreshCallback_) refreshCallback_();
     if (shouldOfferRewards(levelIndex))
     {
@@ -1538,17 +1891,28 @@ void BattleEngine::showRelicReward(const QString& fixedRelic)
 {
     if (!fixedRelic.isEmpty())
     {
-        addRelic(fixedRelic);
+        addRelic(fixedRelic, -1, false, true);
         return;
     }
+    showRelicChoice();
+}
+
+void BattleEngine::showRelicChoice()
+{
+    // 将新增遗物追加到池中
     QStringList pool = {
-        QStringLiteral("铁剑"), QStringLiteral("旧盾"), QStringLiteral("旅人靴"), QStringLiteral("铜钱袋"), QStringLiteral("破碎护符"),
-        QStringLiteral("战鼓"), QStringLiteral("医疗包"), QStringLiteral("魔法书"), QStringLiteral("幸运骰子"),
-        QStringLiteral("人王徽记"), QStringLiteral("猩红酒杯"), QStringLiteral("精灵树枝"), QStringLiteral("圣河水滴"), QStringLiteral("魔王残角")
+        QStringLiteral("铁剑"), QStringLiteral("旧盾"), QStringLiteral("战鼓"), QStringLiteral("铜钱袋"),
+        QStringLiteral("破碎护符"), QStringLiteral("医疗包"), QStringLiteral("魔法书"), QStringLiteral("幸运骰子"),
+        QStringLiteral("人王徽记"), QStringLiteral("猩红酒杯"), QStringLiteral("精灵树枝"), QStringLiteral("圣河水滴"),
+        QStringLiteral("魔王残角"),
+        // 新增遗物
+        QStringLiteral("断爪"), QStringLiteral("许愿骨"), QStringLiteral("铁玫瑰"), QStringLiteral("黄金祭坛"),
+        QStringLiteral("染血符咒"), QStringLiteral("锈蚀胸甲"), QStringLiteral("鎏金坩埚"), QStringLiteral("死亡圣契"),
+        QStringLiteral("高塔石碑"), QStringLiteral("石像鬼雕像")
     };
-    for (const QString& owned : relics_)
+    for (const RelicInstance& r : relics_)
     {
-        pool.removeAll(owned);
+        pool.removeAll(r.name);
     }
     if (pool.isEmpty())
     {
@@ -1559,20 +1923,175 @@ void BattleEngine::showRelicReward(const QString& fixedRelic)
         return;
     }
 
+    // 遗物次数标注
+    auto relicUsesTag = [](const QString& name) -> QString {
+        if (name == QStringLiteral("许愿骨") || name == QStringLiteral("染血符咒")
+            || name == QStringLiteral("鎏金坩埚") || name == QStringLiteral("死亡圣契"))
+            return QStringLiteral("一次性");
+        if (name == QStringLiteral("破碎护符") || name == QStringLiteral("高塔石碑"))
+            return QStringLiteral("×1");
+        if (name == QStringLiteral("断爪") || name == QStringLiteral("石像鬼雕像"))
+            return QStringLiteral("×3");
+        return QStringLiteral("∞");
+    };
+
     QStringList offer;
     const int offerCount = std::min(3, int(pool.size()));
     for (int i = 0; i < offerCount; ++i)
     {
         const int index = QRandomGenerator::global()->bounded(pool.size());
         const QString relic = pool.takeAt(index);
-        offer << QStringLiteral("%1  |  %2").arg(relic, relicDescription(relic));
+        offer << QStringLiteral("%1  |  %2  |  %3").arg(relic, relicDescription(relic), relicUsesTag(relic));
     }
     bool ok = false;
-    QString choice = QInputDialog::getItem(parentWidget_, QStringLiteral("遗物奖励"), QStringLiteral("选择一个遗物"), offer, 0, false, &ok);
+    QString choice = QInputDialog::getItem(parentWidget_, QStringLiteral("遗物奖励"),
+                                           QStringLiteral("选择一个遗物"), offer, 0, false, &ok);
     if (ok)
     {
-        addRelic(choice.section(QStringLiteral("  |  "), 0, 0));
+        const QString relicName = choice.section(QStringLiteral("  |  "), 0, 0);
+        // 根据遗物名称确定 uses/slotless
+        // 一次性遗物：许愿骨/染血符咒/鎏金坩埚/死亡圣契
+        if (relicName == QStringLiteral("许愿骨")
+            || relicName == QStringLiteral("染血符咒") || relicName == QStringLiteral("鎏金坩埚")
+            || relicName == QStringLiteral("死亡圣契"))
+        {
+            addRelic(relicName, 1, true, false);  // uses=1, slotless=true
+        }
+        // 限次遗物：破碎护符(1)/断爪(3)/高塔石碑(1)/石像鬼雕像(3)
+        else if (relicName == QStringLiteral("破碎护符"))
+            addRelic(relicName, 1, false, false);
+        else if (relicName == QStringLiteral("断爪"))
+            addRelic(relicName, 3, false, false);
+        else if (relicName == QStringLiteral("高塔石碑"))
+            addRelic(relicName, 1, false, false);
+        else if (relicName == QStringLiteral("石像鬼雕像"))
+            addRelic(relicName, 3, false, false);
+        // 其余为永久遗物
+        else
+            addRelic(relicName, -1, false, false);
+
+        // ---- 一次性遗物的立即触发 ----
+        if (relicName == QStringLiteral("许愿骨"))
+        {
+            for (int i = 0; i < 3; ++i)
+                showRelicChoice();
+        }
+        else if (relicName == QStringLiteral("染血符咒"))
+        {
+            if (UnitInstance* hero = playerUnits_[kHeroSlot])
+            {
+                hero->hp -= 5;
+                heroPermanentAtkBonus_ += 1;
+                appendLog(QStringLiteral("染血符咒：主角失去5点生命，永久增加1点攻击力。"));
+                if (hero->hp <= 0)
+                {
+                    appendLog(QStringLiteral("主角因染血符咒死亡！"));
+                    if (refreshCallback_) refreshCallback_();
+                }
+            }
+        }
+        else if (relicName == QStringLiteral("死亡圣契"))
+        {
+            heroPermanentHpBonus_ -= 5;
+            if (UnitInstance* hero = playerUnits_[kHeroSlot])
+            {
+                hero->base.hp = std::max(1, hero->base.hp - 5);
+                if (hero->hp > hero->base.hp)
+                    hero->hp = hero->base.hp;
+            }
+            for (UnitInstance* u : alive(playerUnits_))
+                heal(u, u->base.hp - u->hp);  // 回复至上限
+            appendLog(QStringLiteral("死亡圣契：主角永久失去5点生命上限，己方全体生命回复至上限。"));
+            if (refreshCallback_) refreshCallback_();
+        }
+        else if (relicName == QStringLiteral("鎏金坩埚"))
+        {
+            if (gold_ < 20)
+            {
+                appendLog(QStringLiteral("鎏金坩埚：金币不足20，遗物白白丢弃。"));
+            }
+            else if (skillSlots_.size() < kMaxSkills)
+            {
+                gold_ -= 20;
+                skillSlots_.push_back({QStringLiteral("铸剑"), QStringLiteral("主角"), QStringLiteral("命运")});
+                appendLog(QStringLiteral("鎏金坩埚：消耗20金币，获得铸剑技能。"));
+            }
+            else
+            {
+                // 技能槽已满，选一个替换或放弃
+                QStringList options;
+                for (int i = 0; i < skillSlots_.size(); ++i)
+                {
+                    options << QStringLiteral("%1号槽：%2（来自 %3）")
+                                   .arg(i + 1)
+                                   .arg(skillSlots_[i].name, skillSlots_[i].source);
+                }
+                options << QStringLiteral("—— 不替换，放弃铸剑技能 ——");
+
+                bool ok = false;
+                QString choice = QInputDialog::getItem(parentWidget_,
+                                                       QStringLiteral("技能槽已满"),
+                                                       QStringLiteral("技能槽已满。花费20金币选择要替换的技能，或放弃："),
+                                                       options, 0, false, &ok);
+                if (!ok) return;
+
+                int chosen = options.indexOf(choice);
+                if (chosen >= 0 && chosen < skillSlots_.size())
+                {
+                    gold_ -= 20;
+                    skillSlots_[chosen] = {QStringLiteral("铸剑"), QStringLiteral("主角"), QStringLiteral("命运")};
+                    appendLog(QStringLiteral("鎏金坩埚：消耗20金币，替换%1号槽获得铸剑技能。").arg(chosen + 1));
+                }
+                else
+                {
+                    appendLog(QStringLiteral("鎏金坩埚：放弃替换，铸剑技能白白丢弃。"));
+                }
+            }
+            if (refreshCallback_) refreshCallback_();
+        }
     }
+}
+
+bool BattleEngine::showGoldAltar()
+{
+    if (!hasRelic(QStringLiteral("黄金祭坛"))) return false;
+
+    bool purchasedAny = false;
+    while (true)
+    {
+        const int cost = 20 + goldAltarPurchases_ * 10;
+        if (gold_ < cost) break;  // 金币不足，不再弹出
+
+        QDialog dialog(parentWidget_);
+        dialog.setWindowTitle(QStringLiteral("黄金祭坛"));
+        QVBoxLayout* layout = new QVBoxLayout(&dialog);
+        layout->addWidget(smallLabel(
+            QStringLiteral("当前金币：%1\n本次购买需要：%2 金币\n\n是否花费金币换取一次遗物奖励？")
+                .arg(gold_).arg(cost)));
+
+        QHBoxLayout* buttons = new QHBoxLayout;
+        QPushButton* buy = new QPushButton(QStringLiteral("购买 (%1 金币)").arg(cost));
+        QPushButton* skip = new QPushButton(QStringLiteral("离开"));
+        buttons->addWidget(buy);
+        buttons->addWidget(skip);
+        layout->addLayout(buttons);
+
+        bool bought = false;
+        connect(buy, &QPushButton::clicked, &dialog, [&]() { bought = true; dialog.accept(); });
+        connect(skip, &QPushButton::clicked, &dialog, &QDialog::reject);
+        dialog.exec();
+
+        if (!bought) break;
+
+        gold_ -= cost;
+        ++goldAltarPurchases_;
+        purchasedAny = true;
+        appendLog(QStringLiteral("黄金祭坛：花费%1金币换取遗物奖励（第%2次）。").arg(cost).arg(goldAltarPurchases_));
+        if (refreshCallback_) refreshCallback_();
+        showRelicChoice();
+        if (refreshCallback_) refreshCallback_();
+    }
+    return purchasedAny;
 }
 
 void BattleEngine::autoDeployPlayer(int chapterIndex)
@@ -1586,7 +2105,6 @@ void BattleEngine::autoDeployPlayer(int chapterIndex)
             playerUnits_[slot] = createUnit(t, false, false);
         }
     }
-    applyRelicsStart();
 }
 
 void BattleEngine::preparePlayerForBattle(int chapterIndex)
@@ -1631,9 +2149,8 @@ void BattleEngine::preparePlayerForBattle(int chapterIndex)
         u->aliveRounds = 0;
         u->revived = false;
         u->protectedDeath = false;
+        u->statuses.clear();
     }
-
-    applyRelicsStart();
 }
 
 void BattleEngine::showDeckRefillDialog(const QStringList& deadRows)
@@ -1743,6 +2260,15 @@ void BattleEngine::showDeckRefillDialog(const QStringList& deadRows)
         }
     }
 
+    // 没有任何候选牌，或所有候选都是不可上场的补位牌 → 不弹窗
+    const bool anySelectable = std::any_of(offer.begin(), offer.end(),
+                                           [](const RefillOffer& o) { return o.selectable; });
+    if (offer.isEmpty() || !anySelectable)
+    {
+        rememberFailedRefills(deadRows, {});
+        return;
+    }
+
     QDialog dialog(parentWidget_);
     dialog.setWindowTitle(QStringLiteral("牌库补员：抽取4张"));
     dialog.setMinimumWidth(720);
@@ -1827,7 +2353,6 @@ void BattleEngine::runRound(int chapterIndex, int levelIndex)
     if (!inBattle_) return;
     skillsUsedThisTurn_ = 0;  /// [Recoleta37] 每回合重置技能使用计数
     appendLog(QStringLiteral("第%1回合").arg(battleRound_));
-    applyRelicsStart();
     bossMechanics(chapterIndex);
     generateSkills();
     allAttack(playerUnits_, enemyUnits_, true);
@@ -1839,10 +2364,17 @@ void BattleEngine::runRound(int chapterIndex, int levelIndex)
     cleanupDeaths(enemyUnits_, false);
     cleanupDeaths(playerUnits_, true);
     growAllUnitsMaxHp();
+
     ++battleRound_;
+
+    // 回合结束，新回合开始 —— 触发"每回合开始时"遗物效果
+    applyRelicsStart();
 
     // 死亡效果（复活/精灵树枝）播放完毕后再检查胜负
     if (refreshCallback_) refreshCallback_();
+
+    // 回合结算特效播放完毕，衰减状态层数（铸剑除外，不衰减）
+    tickStatuses();
 
     if (enemiesDefeated())
     {
@@ -1865,14 +2397,16 @@ void BattleEngine::cleanupDeaths(std::array<UnitInstance*, 5>& board, bool playe
     {
         UnitInstance* u = board[i];
         if (!u || u->hp > 0) continue;
-        if (playerSide && u->hero && (relics_.contains(QStringLiteral("破碎护符")) || u->protectedDeath) && !u->revived)
+        if (playerSide && u->hero && (hasRelic(QStringLiteral("破碎护符")) || u->protectedDeath) && !u->revived)
         {
             u->hp = 1;
             u->revived = true;
             appendLog(QStringLiteral("主角被保留在1点生命。"));
+            consumeRelic(QStringLiteral("破碎护符"));
+            cleanupZeroUseRelics();
             continue;
         }
-        if (playerSide && relics_.contains(QStringLiteral("精灵王冠")) && !u->revived)
+        if (playerSide && hasRelic(QStringLiteral("精灵王冠")) && !u->revived)
         {
             u->hp = 8;
             u->revived = true;
@@ -1913,7 +2447,7 @@ void BattleEngine::cleanupDeaths(std::array<UnitInstance*, 5>& board, bool playe
             appendLog(QStringLiteral("%1 触发Boss复活机制。").arg(u->base.name));
             continue;
         }
-        if (playerSide && relics_.contains(QStringLiteral("精灵树枝")) && u->base.faction == QStringLiteral("精灵族"))
+        if (playerSide && hasRelic(QStringLiteral("精灵树枝")) && u->base.faction == QStringLiteral("精灵族"))
         {
             for (UnitInstance* e : alive(enemyUnits_)) dealDamage(e, 5, QStringLiteral("精灵树枝"));
         }

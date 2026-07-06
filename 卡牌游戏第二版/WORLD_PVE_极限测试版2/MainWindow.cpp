@@ -460,6 +460,12 @@ QWidget* MainWindow::buildBoard()
         bottomRow->addWidget(card.shieldLabel);
         cardLayout->addLayout(bottomRow);
 
+        card.statusLabel = new QLabel;
+        card.statusLabel->setObjectName(QStringLiteral("cardShieldLabel"));
+        card.statusLabel->setAlignment(Qt::AlignCenter);
+        card.statusLabel->setStyleSheet("color:#c0392b; font-size:10px; font-weight:700; background:transparent;");
+        cardLayout->addWidget(card.statusLabel);
+
         grid->addWidget(card.frame, placements[i][0], placements[i][1], Qt::AlignCenter);
     }
     return box;
@@ -500,6 +506,13 @@ QWidget* MainWindow::buildBottomBar()
         card.descLabel->setWordWrap(true);
         card.descLabel->setAlignment(Qt::AlignCenter);
         cardLayout->addWidget(card.descLabel, 1);
+
+        card.echoLabel = new QLabel;
+        card.echoLabel->setObjectName(QStringLiteral("skillDescLabel"));
+        card.echoLabel->setAlignment(Qt::AlignCenter);
+        card.echoLabel->setStyleSheet("color:#27ae60; font-size:11px; font-weight:700; background:transparent;");
+        card.echoLabel->setVisible(false);
+        cardLayout->addWidget(card.echoLabel);
 
         /// [Recoleta37] 点击切换勾选，上限 = 2 - 本回合已释放次数
         card.frame->installEventFilter(this);
@@ -550,6 +563,12 @@ QWidget* MainWindow::buildRightPanel()
         card.descLabel->setWordWrap(true);
         card.descLabel->setAlignment(Qt::AlignCenter);
         cardLayout->addWidget(card.descLabel, 1);
+
+        card.usesLabel = new QLabel;
+        card.usesLabel->setObjectName(QStringLiteral("relicDescLabel"));
+        card.usesLabel->setAlignment(Qt::AlignCenter);
+        card.usesLabel->setStyleSheet("color:#6b4423; font-size:11px; font-weight:700; background:transparent;");
+        cardLayout->addWidget(card.usesLabel);
 
         layout->addWidget(card.frame);
     }
@@ -608,7 +627,7 @@ void MainWindow::startGame()
     mapManager.resetMapPoints();
     chapterIndex = 0;
     levelIndex = 1;
-    battleEngine.goldRef() = 0;
+    battleEngine.goldRef() = 20;
     battleEngine.relicsRef().clear();
     battleEngine.skillSlotsRef().clear();
     battleEngine.clearAllUnits();
@@ -665,6 +684,11 @@ void MainWindow::enterCurrentLevel()
         checkpointSecondChapterAncientCityShown = secondChapterAncientCityShown;
         appendLog(QStringLiteral("已保存本大章节开始状态。"));
     }
+
+    // 黄金祭坛：Boss 关卡开始前可花费金币购买遗物
+    const bool isBossLevel = (levelIndex == 10) || (chapterIndex == 8 && levelIndex == 2);
+    if (isBossLevel)
+        battleEngine.showGoldAltar();
 
     if (chapterIndex == 8)
     {
@@ -863,6 +887,27 @@ void MainWindow::refreshBoard()
                     QStringLiteral("QProgressBar#cardHpBar { border:1px solid #5a371d; }"
                                    "QProgressBar#cardHpBar::chunk { background:#c0392b; border-radius:1px; }"));
             }
+
+            // 状态显示：正面绿色在上，负面红色在下
+            QStringList posTexts, negTexts;
+            for (const StatusEffect& s : u->statuses)
+            {
+                const QString text = QStringLiteral("%1%2").arg(s.name).arg(s.layers);
+                if (s.name == QStringLiteral("荆棘") || s.name == QStringLiteral("回响") || s.name == QStringLiteral("铸剑"))
+                    posTexts << text;
+                else
+                    negTexts << text;
+            }
+            QString html;
+            if (!posTexts.isEmpty())
+                html += QStringLiteral("<span style='color:#27ae60;'>%1</span>").arg(posTexts.join(QStringLiteral(" ")));
+            if (!negTexts.isEmpty())
+            {
+                if (!html.isEmpty()) html += QStringLiteral("<br>");
+                html += QStringLiteral("<span style='color:#c0392b;'>%1</span>").arg(negTexts.join(QStringLiteral(" ")));
+            }
+            card.statusLabel->setText(html);
+            card.statusLabel->setVisible(!html.isEmpty());
         }
         else
         {
@@ -871,6 +916,7 @@ void MainWindow::refreshBoard()
             card.nameLabel->setText(QStringLiteral("待部署"));
             card.hpBar->setVisible(false);
             card.shieldLabel->setVisible(false);
+            card.statusLabel->setVisible(false);
         }
         card.frame->setStyleSheet(cardFrameStyle(u, enemySide));
     };
@@ -896,6 +942,26 @@ void MainWindow::refreshSkills()
             skillCards[i].descLabel->setText(desc);
             skillCards[i].frame->setToolTip(desc);
             skillCards[i].frame->setEnabled(true);
+
+            // 回响：查找来源棋子的回响层数
+            int echoLayers = 0;
+            for (UnitInstance* u : battleEngine.playerUnits())
+            {
+                if (u && u->base.name == src)
+                {
+                    echoLayers = battleEngine.statusLayers(u, QStringLiteral("回响"));
+                    break;
+                }
+            }
+            if (echoLayers > 0)
+            {
+                skillCards[i].echoLabel->setText(QStringLiteral("回响×%1").arg(echoLayers));
+                skillCards[i].echoLabel->setVisible(true);
+            }
+            else
+            {
+                skillCards[i].echoLabel->setVisible(false);
+            }
         }
         else
         {
@@ -904,13 +970,31 @@ void MainWindow::refreshSkills()
             skillCards[i].descLabel->setText(QString());
             skillCards[i].frame->setToolTip(QString());
             skillCards[i].frame->setEnabled(false);
+            skillCards[i].echoLabel->setVisible(false);
         }
         // 更新选中/未选中样式
         if (skillCards[i].checked)
         {
-            skillCards[i].frame->setStyleSheet(
-                QStringLiteral("QFrame#skillCard { background:#f3cf70; border:3px solid #fff1a8; border-radius:6px; }"));
+            // 铸剑选中用橙色基调
+            if (i < battleEngine.skillSlotsRef().size()
+                && battleEngine.skillSlotsRef()[i].name == QStringLiteral("铸剑"))
+            {
+                skillCards[i].frame->setStyleSheet(
+                    QStringLiteral("QFrame#skillCard { background:#f0a050; border:3px solid #f4b870; border-radius:6px; }"));
+            }
+            else
+            {
+                skillCards[i].frame->setStyleSheet(
+                    QStringLiteral("QFrame#skillCard { background:#f3cf70; border:3px solid #fff1a8; border-radius:6px; }"));
+            }
             skillCards[i].frame->raise();
+        }
+        else if (i < battleEngine.skillSlotsRef().size()
+                 && battleEngine.skillSlotsRef()[i].name == QStringLiteral("铸剑"))
+        {
+            // 特殊技能牌：橙色底色
+            skillCards[i].frame->setStyleSheet(
+                QStringLiteral("QFrame#skillCard { background:#e8934b; border:2px solid #f4a462; border-radius:6px; }"));
         }
         else
         {
@@ -921,17 +1005,35 @@ void MainWindow::refreshSkills()
 
 void MainWindow::refreshRelics()
 {
+    // 先过滤出占槽遗物（非 slotless 且 uses!=0）
+    QVector<int> visibleIndexes;
+    for (int i = 0; i < battleEngine.relicsRef().size(); ++i)
+    {
+        const RelicInstance& r = battleEngine.relicsRef()[i];
+        if (!r.slotless && r.uses != 0)
+            visibleIndexes.push_back(i);
+    }
+
     for (int i = 0; i < kMaxRelics; ++i)
     {
-        if (i < battleEngine.relicsRef().size())
+        if (i < visibleIndexes.size())
         {
-            relicCards[i].nameLabel->setText(battleEngine.relicsRef()[i]);
-            relicCards[i].descLabel->setText(battleEngine.relicDescription(battleEngine.relicsRef()[i]));
+            const RelicInstance& r = battleEngine.relicsRef()[visibleIndexes[i]];
+            relicCards[i].nameLabel->setText(r.name);
+            relicCards[i].descLabel->setText(battleEngine.relicDescription(r.name));
+            // 次数标签
+            if (r.uses == -1)
+                relicCards[i].usesLabel->setText(QStringLiteral("∞"));
+            else if (r.uses > 0)
+                relicCards[i].usesLabel->setText(QStringLiteral("×%1").arg(r.uses));
+            else
+                relicCards[i].usesLabel->setText(QString());
         }
         else
         {
             relicCards[i].nameLabel->setText(QStringLiteral("遗物槽 %1").arg(i + 1));
             relicCards[i].descLabel->setText(QStringLiteral("空"));
+            relicCards[i].usesLabel->setText(QString());
         }
     }
 }

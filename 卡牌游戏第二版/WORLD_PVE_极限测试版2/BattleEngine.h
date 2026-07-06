@@ -59,7 +59,7 @@ public:
     const std::array<UnitInstance*, 5>& enemyUnits() const { return enemyUnits_; }
     const QVector<UnitTemplate>& roster() const { return roster_; }
     const QVector<SkillCard>& skillSlots() const { return skillSlots_; }
-    const QStringList& relics() const { return relics_; }
+    const QVector<RelicInstance>& relics() const { return relics_; }
     const QStringList& logLines() const { return logLines_; }
 
     // ============================================================
@@ -76,7 +76,7 @@ public:
     std::array<UnitInstance*, 5>& enemyUnitsRef() { return enemyUnits_; }
     QVector<UnitTemplate>& rosterRef() { return roster_; }
     QVector<SkillCard>& skillSlotsRef() { return skillSlots_; }
-    QStringList& relicsRef() { return relics_; }
+    QVector<RelicInstance>& relicsRef() { return relics_; }
     QStringList& logLinesRef() { return logLines_; }
     /// @}
 
@@ -167,6 +167,13 @@ public:
     /// 添加护盾并记录 ShieldGain 事件
     void addShield(UnitInstance* target, int amount, const QString& reason = {});
 
+    // ---- 状态效果 ----
+    void addStatus(UnitInstance* target, const QString& name, int layers = 1, bool decays = false);
+    void removeStatus(UnitInstance* target, const QString& name);
+    bool hasStatus(const UnitInstance* target, const QString& name) const;
+    int statusLayers(const UnitInstance* target, const QString& name) const;
+    void tickStatuses();
+
     /// 战斗事件队列（供 MainWindow 消费后清除）
     const QVector<CombatEvent>& pendingCombatEvents() const { return pendingCombatEvents_; }
     void clearCombatEvents() { pendingCombatEvents_.clear(); }
@@ -211,11 +218,30 @@ public:
     /// 回合开始时触发所有遗物效果
     void applyRelicsStart();
 
-    /// 获得遗物（槽满时弹出替换对话框）
-    void addRelic(const QString& relic);
+    /// @param uses -1=永久, >0=剩余次数, slotless=true=一次性不占槽
+    /// @param isStory 剧情遗物（替换对话框中显示警告）
+    void addRelic(const QString& relic, int uses = -1, bool slotless = false, bool isStory = false);
 
     /// 检查四件剧情遗物是否集齐，融合为"世界"
     void tryFuseWorld();
+
+    /// 查询是否拥有指定遗物（替代原 relics_.contains()）
+    bool hasRelic(const QString& name) const;
+
+    /// 查询遗物剩余次数（-1=永久, 0=未拥有或已耗尽）
+    int relicUses(const QString& name) const;
+
+    /// 消耗遗物次数（-1），返回 true 表示次数归零需清理
+    bool consumeRelic(const QString& name);
+
+    /// 移除所有 uses==0 的遗物
+    void cleanupZeroUseRelics();
+
+    /// 当前占槽遗物数量（不含 slotless 一次性遗物）
+    int activeRelicCount() const;
+
+    /// 普通遗物奖励三选一（从 showRelicReward 拆分，供许愿骨/黄金祭坛复用）
+    void showRelicChoice();
 
     // ============================================================
     // Step 6: 战斗流程
@@ -254,6 +280,10 @@ public:
     /// 牌库补员对话框（棋子死亡后按死亡排位抽取替补候选）
     void showDeckRefillDialog(const QStringList& deadRows);
 
+    /// 黄金祭坛：Boss 关前金币购买遗物弹窗（可多次购买，价格递增）
+    /// @return true 如果购买发生（可能需要刷新 UI）
+    bool showGoldAltar();
+
     /// 结局播放（结束时通过 restartGameCallback 回到 MainWindow::startGame）
     void showEnding();
 
@@ -264,10 +294,14 @@ private:
 
     // ---- 战斗状态 ----
     int battleRound_ = 1;
-    int gold_ = 0;
+    int gold_ = 20;
     int skillsUsedThisTurn_ = 0;
     int heroHpGrowth_ = 0;
     int fateBladeHealBonus_ = 0;
+    int heroPermanentAtkBonus_ = 0;  ///< 永久攻击力加成（染血符咒等，跨战斗继承）
+    int heroPermanentHpBonus_ = 0;   ///< 永久生命值加成（死亡圣契等可为负值，跨战斗继承）
+    int goldAltarPurchases_ = 0;    ///< 黄金祭坛本局已购买次数（用于递增定价）
+    bool forgeActive_ = false;      ///< 铸剑 buff 是否生效（下次伤害×3，消耗后清除）
     bool inBattle_ = false;
     bool endingShown_ = false;
 
@@ -276,7 +310,7 @@ private:
     std::array<UnitInstance*, 5> enemyUnits_{};
     QVector<UnitTemplate> roster_;
     QVector<SkillCard> skillSlots_;
-    QStringList relics_;
+    QVector<RelicInstance> relics_;                                    ///< 遗物实例列表（含使用次数）
 
     QVector<SkillCard> migEntranceSkillSnapshot_;
     int agniPoisonDamage_ = 2;
@@ -296,13 +330,16 @@ private:
     int snapshotSkillsUsedThisTurn_ = 0;
     int snapshotHeroHpGrowth_ = 0;
     int snapshotFateBladeHealBonus_ = 0;
+    int snapshotHeroPermanentAtkBonus_ = 0;
+    int snapshotHeroPermanentHpBonus_ = 0;
+    int snapshotGoldAltarPurchases_ = 0;
     bool snapshotInBattle_ = false;
     bool snapshotEndingShown_ = false;
     BoardSnapshot snapshotPlayerUnits_;
     BoardSnapshot snapshotEnemyUnits_;
     QVector<UnitTemplate> snapshotRoster_;
     QVector<SkillCard> snapshotSkillSlots_;
-    QStringList snapshotRelics_;
+    QVector<RelicInstance> snapshotRelics_;
     QVector<SkillCard> snapshotMigEntranceSkillSnapshot_;
     int snapshotAgniPoisonDamage_ = 2;
     QStringList snapshotPendingRefillRows_;

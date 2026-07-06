@@ -14,8 +14,8 @@ inline constexpr int kHeroSlot = 2;
 /// 技能槽最大数量（底部面板同时最多持有 5 张技能卡）
 inline constexpr int kMaxSkills = 5;
 
-/// 遗物槽最大数量（右侧面板同时最多持有 5 个遗物）
-inline constexpr int kMaxRelics = 5;
+/// 遗物槽最大数量（右侧面板同时最多持有 7 个遗物）
+inline constexpr int kMaxRelics = 7;
 
 // ============================================================================
 // 核心数据结构
@@ -33,6 +33,25 @@ struct UnitTemplate
     int atk;         ///< 基础攻击力
 };
 
+/// 遗物实例 —— 记录遗物的名称、剩余使用次数与槽位属性
+/// uses: -1=永久有效, >0=剩余次数, 0=待清理
+/// slotless: true=一次性遗物不占槽，触发后直接丢弃
+struct RelicInstance
+{
+    QString name;
+    int uses = -1;         ///< -1=永久, >0=剩余次数
+    bool slotless = false; ///< 一次性遗物不占用槽位
+};
+
+/// 状态效果 —— 附加在单位上的 buff/debuff
+/// layers: 层数（1-N），decays: 是否每回合-1
+struct StatusEffect
+{
+    QString name;     ///< 状态名称："石化"/"脆弱"/"荆棘"/"回响"/"铸剑"
+    int layers = 1;   ///< 当前层数
+    bool decays = false; ///< 每回合结束时是否-1层
+};
+
 /// 单位实例 —— 战斗中某个单位在棋盘上的动态状态
 /// 模板提供基线，实例记录当前 HP / 护盾 / 回合计数等
 struct UnitInstance
@@ -41,6 +60,7 @@ struct UnitInstance
     int hp = 0;              ///< 当前生命值
     int shield = 0;          ///< 当前护盾值（优先抵扣伤害）
     int aliveRounds = 0;     ///< 存活回合数（用于技能生成周期，每 2 回合产一张）
+    QVector<StatusEffect> statuses; ///< 当前附加的状态效果
     bool hero = false;       ///< 是否为主角（不可移除、不可出售）
     bool boss = false;       ///< 是否为 Boss 单位（触发特殊机制）
     bool revived = false;    ///< 本场战斗是否已触发过复活
@@ -50,8 +70,9 @@ struct UnitInstance
 /// 技能卡牌 —— 显示在底部技能槽中的可选技能
 struct SkillCard
 {
-    QString name;   ///< 技能名称（如"斩击"、"治疗术"）
-    QString source; ///< 生成此技能的单位名称（如"见习剑士"）
+    QString name;    ///< 技能名称（如"斩击"、"治疗术"）
+    QString source;  ///< 生成此技能的单位名称（如"见习剑士"）
+    QString faction; ///< 生成此技能的单位阵营（用于遗物"圣河水滴"按阵营匹配）
 };
 
 /// 章节定义 —— 描述一个章节的关卡配置与奖励
