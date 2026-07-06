@@ -4,3 +4,4 @@
 - As is required, the project is based on **C++ Qt**.
 - You're welcome to **download**, **play**, and **share your feedback** or **report bugs**.
 - Find out more details in our **project report**!
+- If you want to download the **video illustration**,please follow the following address(https://disk.pku.edu.cn/link/ARCB02973FEB6842B3A65425B98D4746B5)
