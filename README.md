@@ -8,3 +8,5 @@
 -文件名：助教分配19-演示.mp4
 -有效期限：2026-08-07 15:47
 -提取码：QUXm
+- We've updated a release verision. If you want to play our game,you can simply download the release and click **WorldPveExtreme.exe** to start your play without QC
+- 我们更新了一版发布版，如果您想要玩我们的游戏，您可以下载发布版之后点击.exe文件来在不需要QC的情况下开启您的游玩
