@@ -4,7 +4,7 @@
 - As is required, the project is based on **C++ Qt**.
 - You're welcome to **download**, **play**, and **share your feedback** or **report bugs**.
 - Find out more details in our **project report**!
-- If you want to download the **video illustration**,please follow the following address(https://disk.pku.edu.cn/link/ARCB02973FEB6842B3A65425B98D4746B5(https://disk.pku.edu.cn/link/AA1D880C0BD61348EB8D8B3F2473C41383)
+- If you want to download the **video illustration**,please follow the following address(https://disk.pku.edu.cn/link/ARCB02973FEB6842B3A65425B98D4746B5(https://disk.pku.edu.cn/link/AA1D880C0BD61348EB8D8B3F2473C41383 )
 -文件名：助教分配19-演示.mp4
 -有效期限：2026-08-07 15:47
 -提取码：QUXm
