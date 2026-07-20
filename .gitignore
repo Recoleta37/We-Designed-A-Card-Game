@@ -54,3 +54,24 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+# Unity generated files
+**/Library/
+**/Temp/
+**/Obj/
+**/Logs/
+**/UserSettings/
+**/Build/
+**/Builds/
+**/*.csproj
+**/*.sln
+**/*.suo
+**/*.user
+**/*.pidb
+**/*.booproj
+**/*.svd
+**/*.pdb
+**/*.mdb
+
+# Local release packages
+*.zip

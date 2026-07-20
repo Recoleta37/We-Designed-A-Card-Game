@@ -1,0 +1,268 @@
+{
+  "chapter_0": {
+    "title": "序章：梦境",
+    "file": "audio/bgm/chapter_0.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental fantasy RPG background music, dreamlike prologue, soft piano, distant choir pad, light strings, tiny bells, slow tempo, calm and mysterious, no vocals, no lyrics, seamless loop feeling.",
+    "trace_id": "06ac3ce011c00b1ba9bc080b4128352a",
+    "extra_info": {
+      "music_duration": 135915,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 4351258
+    }
+  },
+  "boss_0": {
+    "title": "序章 Boss：魔王？？？",
+    "file": "audio/bgm/boss_0.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental fantasy RPG boss music, calm but ominous, dark low strings, slow war drum, distant choir pad, restrained melody, dream ending and vanished true god atmosphere, no vocals, no lyrics.",
+    "trace_id": "06ac3d73a378d150b10002d44430b498",
+    "extra_info": {
+      "music_duration": 105665,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 3383264
+    }
+  },
+  "chapter_1": {
+    "title": "第一章：微风如诗",
+    "file": "audio/bgm/chapter_1.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental medieval fantasy field music, breeze over farmland and distant royal city, harp, flute, lute, soft strings, warm calm journey feeling, no vocals, no lyrics.",
+    "trace_id": "06ac3dcd24c07a346ac74d200ed60c40",
+    "extra_info": {
+      "music_duration": 162768,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 5210582
+    }
+  },
+  "boss_1": {
+    "title": "第一章 Boss：阿拉贡",
+    "file": "audio/bgm/boss_1.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental medieval knight boss theme, solemn but calm, restrained brass, low drum, noble strings, fortress and loyal commander atmosphere, no vocals, no lyrics.",
+    "trace_id": "06ac3e42796cdd1c2ba36355408fbc81",
+    "extra_info": {
+      "music_duration": 134530,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 4306954
+    }
+  },
+  "chapter_2": {
+    "title": "第二章：猩红平原",
+    "file": "audio/bgm/chapter_2.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental dark fantasy background music, crimson plain, vampire shadow, cold piano, low cello, faint bells, red dusk atmosphere, calm and oppressive, no vocals, no lyrics.",
+    "trace_id": "06ac3eab3d54172805afcf6528099bda",
+    "extra_info": {
+      "music_duration": 158406,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 5070984
+    }
+  },
+  "boss_2": {
+    "title": "第二章 Boss：偷窃者米格",
+    "file": "audio/bgm/boss_2.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental stealthy vampire boss music, quiet tension, pizzicato strings, low cello, faint bell, thief in shadow, restrained and calm, no vocals, no lyrics.",
+    "trace_id": "06ac3f1e7e8a521c6b25063478834105",
+    "extra_info": {
+      "music_duration": 88424,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 2831558
+    }
+  },
+  "chapter_3": {
+    "title": "第三章：赤心跃动",
+    "file": "audio/bgm/chapter_3.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental gothic castle fantasy music, bloodline memory and beating heart, soft piano, strings, subtle heartbeat pulse, sad but calm, no vocals, no lyrics.",
+    "trace_id": "06ac3f6d3b485481a19276a559193835",
+    "extra_info": {
+      "music_duration": 450168,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 14407356
+    }
+  },
+  "boss_3": {
+    "title": "第三章 Boss：艾琳",
+    "file": "audio/bgm/boss_3.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental vampire princess boss theme, elegant sad piano and strings, restrained dark pulse, tragic truth and crimson heart, calm pressure, no vocals, no lyrics.",
+    "trace_id": "06ac40914e96a71486d007a88c57dddf",
+    "extra_info": {
+      "music_duration": 145475,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 4657204
+    }
+  },
+  "chapter_4": {
+    "title": "第四章：精灵圣地",
+    "file": "audio/bgm/chapter_4.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental elven sanctuary fantasy music, ancient forest, harp, woodwinds, soft strings, nature ambience, green mysterious calm, no vocals, no lyrics.",
+    "trace_id": "06ac41064b06ebfd30437b5d050df84d",
+    "extra_info": {
+      "music_duration": 233377,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 7470069
+    }
+  },
+  "boss_4": {
+    "title": "第四章 Boss：阿格尼",
+    "file": "audio/bgm/boss_4.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental elven boss theme, ancient tree and immortality curse, deep forest drones, strings, restrained percussion, sacred but heavy, no vocals, no lyrics.",
+    "trace_id": "06ac41b3dacb434e2045970287e1131a",
+    "extra_info": {
+      "music_duration": 143908,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 4607049
+    }
+  },
+  "chapter_5": {
+    "title": "第五章：撒冷",
+    "file": "audio/bgm/chapter_5.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental holy city fantasy music, angels and Salem, organ, harp, bright strings, golden light atmosphere, solemn and calm, no vocals, no lyrics.",
+    "trace_id": "06ac4220b4b57974f5351d9acc749edd",
+    "extra_info": {
+      "music_duration": 147017,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 4706523
+    }
+  },
+  "boss_5": {
+    "title": "第五章 Boss：米凯尔",
+    "file": "audio/bgm/boss_5.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental archangel boss theme, sacred organ, low drum, bright strings, golden choir pad, majestic but restrained, no vocals, no lyrics.",
+    "trace_id": "06ac4292c4559980edf1439da9520607",
+    "extra_info": {
+      "music_duration": 43493,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 1393779
+    }
+  },
+  "chapter_6": {
+    "title": "第六章：魔境",
+    "file": "audio/bgm/chapter_6.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental demon realm fantasy music, dark frontier, low strings, soft war drums, lute fragments, distant fire ambience, calm danger, no vocals, no lyrics.",
+    "trace_id": "06ac42c8ace041f6a491d3d2c982e4c0",
+    "extra_info": {
+      "music_duration": 136124,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 4357945
+    }
+  },
+  "boss_6": {
+    "title": "第六章 Boss：伊维尔",
+    "file": "audio/bgm/boss_6.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental demon king boss theme, heavy strings, slow drums, dark brass, tragic old king atmosphere, serious but not loud, no vocals, no lyrics.",
+    "trace_id": "06ac433201987a200930d1405093041a",
+    "extra_info": {
+      "music_duration": 108564,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 3476051
+    }
+  },
+  "chapter_7": {
+    "title": "第七章：终焉",
+    "file": "audio/bgm/chapter_7.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental end-of-world fantasy music, void, white enemies, final land, minimal piano, transparent synth pad, low strings, tiny bells, spacious and calm, no vocals, no lyrics.",
+    "trace_id": "06ac438eb6b9de44f2ee0561eda75a26",
+    "extra_info": {
+      "music_duration": 228649,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 7318768
+    }
+  },
+  "boss_7": {
+    "title": "第七章 Boss：莱索恩",
+    "file": "audio/bgm/boss_7.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental final demon lord boss theme, void low tones, slow drums, dark strings, distant choir pad, solemn oppressive ending, restrained, no vocals, no lyrics.",
+    "trace_id": "06ac442ac56c0931faf092c772387477",
+    "extra_info": {
+      "music_duration": 139859,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 4477482
+    }
+  },
+  "chapter_8": {
+    "title": "第八章：世界",
+    "file": "audio/bgm/chapter_8.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental world rematch fantasy music, return to the beginning, reflective piano, warm strings, clear bells, calm and resolved, no vocals, no lyrics.",
+    "trace_id": "06ac4498ff44a6458e024ade014cda06",
+    "extra_info": {
+      "music_duration": 199288,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 6379196
+    }
+  },
+  "boss_8": {
+    "title": "第八章 Boss：米凯尔与阿格尼",
+    "file": "audio/bgm/boss_8.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Instrumental final rematch boss music, archangel gold and elven forest intertwined, piano, strings, low drum, solemn calm finale, no vocals, no lyrics.",
+    "trace_id": "06ac452847a89317b9f6e07d99b8c3fd",
+    "extra_info": {
+      "music_duration": 142184,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 4551878
+    }
+  },
+  "ending": {
+    "title": "终焉之后",
+    "file": "audio/bgm/ending.mp3",
+    "source": "MiniMax music-3.0-free",
+    "prompt": "Quiet instrumental ending music, story truth and developer reflection, gentle piano, soft strings, airy ambience, sincere calm closure, returning to the beginning, no vocals, no lyrics.",
+    "trace_id": "06ac45971a4ca4fcc8c8dc104b7f6da6",
+    "extra_info": {
+      "music_duration": 102217,
+      "music_sample_rate": 44100,
+      "music_channel": 2,
+      "bitrate": 256000,
+      "music_size": 3272923
+    }
+  }
+}
