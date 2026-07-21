@@ -8,6 +8,7 @@ public static class BuildWindows
 {
     public static void Build()
     {
+        Debug.Log("BuildWindows.Build started.");
         PlayerSettings.companyName = "hhhh";
         PlayerSettings.productName = "真神之死：终焉";
         PlayerSettings.SplashScreen.show = false;
@@ -22,6 +23,11 @@ public static class BuildWindows
         EditorSceneManager.SaveScene(scene, "Assets/Scenes/Main.unity");
         var buildPath = Path.GetFullPath("Build/WorldPveUnity_HearthUI.exe");
         Directory.CreateDirectory(Path.GetDirectoryName(buildPath));
-        BuildPipeline.BuildPlayer(new[] { "Assets/Scenes/Main.unity" }, buildPath, BuildTarget.StandaloneWindows64, BuildOptions.None);
+        var report = BuildPipeline.BuildPlayer(new[] { "Assets/Scenes/Main.unity" }, buildPath, BuildTarget.StandaloneWindows64, BuildOptions.None);
+        Debug.Log("BuildWindows.Build finished: " + report.summary.result + " -> " + buildPath);
+        if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded)
+        {
+            EditorApplication.Exit(1);
+        }
     }
 }

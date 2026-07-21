@@ -12,6 +12,7 @@ using UnityEngine.UI;
 public sealed class CardGameUnityApp : MonoBehaviour
 {
     private const int HeroSlot = 3;
+    private const int MaxOrdinaryRelics = 7;
     private Sprite softCircleSprite;
     private Sprite sparkSprite;
     private Sprite bgmOnSprite;
@@ -297,10 +298,10 @@ public sealed class CardGameUnityApp : MonoBehaviour
                 "赤心骑士", "伯爵残影", "王座守卫", "艾琳", "跃动赤心", "游侠"),
             new Chapter("第四章：精灵圣地",
                 new[] {"精灵射手", "古木守卫", "毒叶法师", "迷途精灵"},
-                "古树长老", "圣地看守者", "精灵祭司", "阿格尼", "精灵王冠"),
+                "古树长老", "圣地看守者", "精灵祭司", "阿格尼"),
             new Chapter("第五章：撒冷",
                 new[] {"圣光侍从", "审判者", "守护天使", "圣河少女"},
-                "六翼候补", "天使裁决官", "圣河守门人", "米凯尔", "圣洁六翼", "加百列"),
+                "六翼候补", "天使裁决官", "圣河守门人", "米凯尔", "", "加百列"),
             new Chapter("第六章：魔境",
                 new[] {"小恶魔", "魔族战士", "火焰术士", "深渊刺客"},
                 "魔境猎手", "深渊领主", "旧王亲卫", "伊维尔"),
@@ -309,7 +310,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
                 "终焉看门人", "伊维尔残影", "邪神使徒", "莱索恩", "邪神赐福"),
             new Chapter("第八章：世界",
                 new[] {"世界回声", "旧日生命", "白色梦境"},
-                "永恒残响", "米凯尔与阿格尼", "世界门扉", "最终问题", "世界")
+                "永恒残响", "米凯尔与阿格尼", "世界门扉", "最终问题")
         };
     }
 
@@ -520,8 +521,6 @@ public sealed class CardGameUnityApp : MonoBehaviour
         }
         if (levelIndex == 3)
         {
-            AddRelic("圣洁六翼");
-            AddRelic("精灵王冠");
             TryFuseWorld();
             ++levelIndex;
         }
@@ -947,12 +946,12 @@ public sealed class CardGameUnityApp : MonoBehaviour
         Anchor(top, new Vector2(min.x, max.y + 0.010f), new Vector2(max.x, max.y + 0.035f));
         top.GetComponent<Image>().raycastTarget = false;
         AddOutline(top, new Color32(180, 232, 255, 180), new Vector2(0.8f, -0.8f));
-        Text shieldText = Text(top.transform, unit.Shield.ToString(), 8, FontStyle.Bold, Color.white, Vector2.zero, Vector2.one, TextAnchor.MiddleCenter);
-        AddOutline(shieldText.gameObject, new Color32(20, 65, 105, 230), new Vector2(1f, -1f));
         var bottom = Panel(parent, "ShieldBottomLine", shieldColor);
         Anchor(bottom, new Vector2(min.x, min.y - 0.025f), new Vector2(max.x, min.y - 0.006f));
         bottom.GetComponent<Image>().raycastTarget = false;
         AddOutline(bottom, new Color32(180, 232, 255, 150), new Vector2(0.7f, -0.7f));
+        Text shieldText = Text(parent, unit.Shield.ToString(), 8, FontStyle.Bold, new Color32(205, 238, 255, 255), new Vector2(min.x, min.y - 0.061f), new Vector2(max.x, min.y - 0.026f), TextAnchor.MiddleCenter);
+        AddOutline(shieldText.gameObject, new Color32(20, 65, 105, 240), new Vector2(1f, -1f));
     }
 
     private void RenderSkills(Transform root)
@@ -976,13 +975,44 @@ public sealed class CardGameUnityApp : MonoBehaviour
         box.transform.SetParent(root, false);
         Anchor(box, new Vector2(0.842f, 0.020f), new Vector2(0.992f, 0.985f));
         Picture(box.transform, "generated/ui/ui_relic_platform.png", new Vector2(-0.08f, -0.010f), new Vector2(1.04f, 1.000f), false);
+        string[] displayRelics = DisplayRelicSlots();
         for (int i = 0; i < 7; ++i)
         {
-            string relic = i < relics.Count ? relics[i] : "";
+            string relic = displayRelics[i];
             float offset = StableRange("relic-x|" + i + "|" + relic, -0.010f, 0.010f);
             GameObject card = DrawRelicCard(box.transform, relic, new Vector2(0.125f + offset, 0.815f - i * 0.118f), new Vector2(0.875f + offset, 0.908f - i * 0.118f));
             card.GetComponent<RectTransform>().localEulerAngles = new Vector3(0f, 0f, StableTilt("relic-tilt|" + i + "|" + relic, 2.4f));
         }
+    }
+
+    private string[] DisplayRelicSlots()
+    {
+        string[] slots = new string[MaxOrdinaryRelics];
+        foreach (string relic in relics.Where(IsStoryRelic))
+        {
+            int slot = StoryRelicSlot(relic);
+            if (slot >= 0 && slot < slots.Length) slots[slot] = relic;
+        }
+
+        int cursor = 0;
+        foreach (string relic in relics.Where(r => !IsInstantRelic(r) && !IsStoryRelic(r)))
+        {
+            while (cursor < slots.Length && !string.IsNullOrEmpty(slots[cursor])) ++cursor;
+            if (cursor >= slots.Length) break;
+            slots[cursor] = relic;
+            ++cursor;
+        }
+        return slots;
+    }
+
+    private int StoryRelicSlot(string relic)
+    {
+        if (relic == "跃动赤心") return 0;
+        if (relic == "邪神赐福") return 2;
+        if (relic == "六翼庇护") return 4;
+        if (relic == "邪神诅咒") return 6;
+        if (relic == "世界") return 3;
+        return -1;
     }
 
     private void RenderCommandPanel(Transform root)
@@ -1062,7 +1092,13 @@ public sealed class CardGameUnityApp : MonoBehaviour
     private void DrawUnitChoiceButton(Transform parent, Unit unit, string footer, Vector2 min, Vector2 max, Action onClick)
     {
         GameObject card = DrawUnitCard(parent, unit, false, min, max);
-        Text(card.transform, footer, 9, FontStyle.Bold, new Color32(45, 24, 10, 255), new Vector2(0.18f, 0.060f), new Vector2(0.88f, 0.125f), TextAnchor.MiddleCenter);
+        var badge = Panel(parent, "UnitChoiceFooter", new Color32(218, 167, 78, 242));
+        Anchor(badge, new Vector2(min.x + 0.010f, min.y - 0.070f), new Vector2(max.x - 0.010f, min.y - 0.012f));
+        AddOutline(badge, new Color32(76, 42, 18, 210), new Vector2(1f, -1f));
+        Text(badge.transform, footer, 10, FontStyle.Bold, new Color32(45, 24, 10, 255), Vector2.zero, Vector2.one, TextAnchor.MiddleCenter);
+        var badgeButton = badge.AddComponent<Button>();
+        badgeButton.targetGraphic = badge.GetComponent<Image>();
+        badgeButton.onClick.AddListener(() => onClick?.Invoke());
         var button = card.AddComponent<Button>();
         button.targetGraphic = card.GetComponent<Image>();
         button.onClick.AddListener(() => onClick?.Invoke());
@@ -1103,6 +1139,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
         if (relic == "\u8dc3\u52a8\u8d64\u5fc3") return 0;
         if (relic == "\u7cbe\u7075\u738b\u51a0") return 1;
         if (relic == "\u5723\u6d01\u516d\u7ffc") return 2;
+        if (relic == "六翼庇护") return 2;
         if (relic == "\u90aa\u795e\u8d50\u798f") return 3;
         if (relic == "\u4e16\u754c") return 4;
         if (relic == "\u9b54\u738b\u6b8b\u89d2") return 5;
@@ -1113,6 +1150,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
         if (relic == "\u771f\u795e\u795d\u798f") return 10;
         if (relic == "\u771f\u795e\u8bc5\u5492") return 11;
         if (relic == "\u90aa\u795e\u8bc5\u5492") return 12;
+        if (relic == "邪神诅咒") return 12;
         if (relic == "\u7329\u7ea2\u9152\u676f") return 13;
         if (relic == "\u5723\u6cb3\u6c34\u6ef4") return 14;
         if (relic == "\u9ad8\u5854\u77f3\u7891") return 15;
@@ -1480,7 +1518,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
             foreach (Unit u in Alive(playerBoard)) u.Atk += 2;
             AddLog("所有友军攻击+2。");
         }
-        else if (skill == "守护") AddShield(Hero(), 10);
+        else if (skill == "守护") AddShield(LowestHp(playerBoard), 10);
         else if (skill == "治疗术") Heal(MostWounded(playerBoard), 12 + healBonus);
         else if (skill == "吸血")
         {
@@ -1619,12 +1657,25 @@ public sealed class CardGameUnityApp : MonoBehaviour
                 AddLog(attacker.Name + " 被石化，无法行动。");
                 continue;
             }
-            Unit target = PreferredAttackTarget(attacker, defenders);
+            int targetSlot = PreferredAttackTargetSlot(attacker, defenders);
+            Unit target = targetSlot >= 0 ? defenders[targetSlot] : null;
             if (target == null) yield break;
             int damage = attacker.Atk;
             if (ReferenceEquals(attackers, playerBoard) && HasRelic("世界")) damage += 50;
-            DealDamage(target, damage, attacker.Name, attacker);
-            yield return WaitForAttackVisuals();
+            if (RowShort(attacker.Row) == "M" && targetSlot <= 1 && defenders.Length > 4 && defenders[4] != null && defenders[4].Hp > 0)
+            {
+                int rearShare = Mathf.Max(1, damage / 3);
+                int frontShare = Mathf.Max(0, damage - rearShare);
+                DealDamage(target, frontShare, attacker.Name, attacker);
+                yield return WaitForAttackVisuals();
+                DealDamage(defenders[4], rearShare, attacker.Name + " 分击", attacker);
+                yield return WaitForAttackVisuals();
+            }
+            else
+            {
+                DealDamage(target, damage, attacker.Name, attacker);
+                yield return WaitForAttackVisuals();
+            }
         }
     }
 
@@ -1643,7 +1694,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
             bool bossRewardLevel = levelIndex == 10 || (chapterIndex == chapters.Length - 1 && levelIndex == 2);
             if (bossRewardLevel)
             {
-                if (!string.IsNullOrEmpty(chapter.Relic)) AddRelic(chapter.Relic);
+                GrantBossStoryRelics(finishedChapter, finishedLevel, chapter);
                 if (!string.IsNullOrEmpty(chapter.Ally))
                 {
                     Unit ally = TemplateByName(chapter.Ally);
@@ -1698,6 +1749,23 @@ public sealed class CardGameUnityApp : MonoBehaviour
         return false;
     }
 
+    private void GrantBossStoryRelics(int finishedChapter, int finishedLevel, Chapter chapter)
+    {
+        if (finishedChapter == chapters.Length - 1 && finishedLevel == 2)
+        {
+            AddRelic("六翼庇护");
+            AddRelic("邪神诅咒");
+            TryFuseWorld();
+            return;
+        }
+
+        string bossName = EnemyNameForLevel(chapter, finishedLevel);
+        if (bossName == "艾琳") AddRelic("跃动赤心");
+        else if (bossName == "莱索恩") AddRelic("邪神赐福");
+        else if (!string.IsNullOrEmpty(chapter.Relic)) AddRelic(chapter.Relic);
+        TryFuseWorld();
+    }
+
     private void ContinueAfterVictory()
     {
         if (!victoryPending) return;
@@ -1738,17 +1806,18 @@ public sealed class CardGameUnityApp : MonoBehaviour
         ClearCanvas();
         var bg = ScreenBackdrop("Reward");
         Stretch(bg);
-        var panel = CenterPanel(bg.transform, "RewardPanel", new Vector2(0.08f, 0.18f), new Vector2(0.92f, 0.82f));
-        Text(panel.transform, "遗物奖励", 28, FontStyle.Bold, new Color32(45, 24, 10, 255), new Vector2(0.10f, 0.82f), new Vector2(0.90f, 0.94f), TextAnchor.MiddleCenter);
-        Text(panel.transform, "选择一个遗物进入下一关", 15, FontStyle.Normal, new Color32(70, 46, 24, 255), new Vector2(0.10f, 0.75f), new Vector2(0.90f, 0.82f), TextAnchor.MiddleCenter);
+        Picture(bg.transform, "generated/ui/ui_skill_table_long.png", new Vector2(0.030f, 0.145f), new Vector2(0.970f, 0.850f), false);
+        var panel = Panel(bg.transform, "RewardTableSurface", new Color32(0, 0, 0, 0));
+        Anchor(panel, new Vector2(0.08f, 0.18f), new Vector2(0.92f, 0.82f));
+        Text(panel.transform, "遗物奖励", 28, FontStyle.Bold, new Color32(255, 236, 178, 240), new Vector2(0.10f, 0.82f), new Vector2(0.90f, 0.94f), TextAnchor.MiddleCenter);
+        Text(panel.transform, "选择一个遗物进入下一关", 15, FontStyle.Normal, new Color32(245, 223, 166, 235), new Vector2(0.10f, 0.75f), new Vector2(0.90f, 0.82f), TextAnchor.MiddleCenter);
         string[] offers = MakeRewardOffers();
         for (int i = 0; i < offers.Length; ++i)
         {
             string offer = offers[i];
-            DrawRewardCardButton(panel.transform, offer, new Vector2(0.10f + i * 0.29f, 0.34f), new Vector2(0.32f + i * 0.29f, 0.68f), () =>
+            DrawRewardCardButton(panel.transform, offer, new Vector2(0.145f + i * 0.265f, 0.31f), new Vector2(0.335f + i * 0.265f, 0.70f), () =>
             {
-                ClaimReward(offer);
-                StartBattle();
+                ClaimReward(offer, StartBattle);
             });
         }
         Button(panel.transform, "跳过", new Vector2(0.42f, 0.12f), new Vector2(0.58f, 0.23f), StartBattle);
@@ -1759,15 +1828,17 @@ public sealed class CardGameUnityApp : MonoBehaviour
         ClearCanvas();
         var bg = ScreenBackdrop("UnitReward");
         Stretch(bg);
-        var panel = CenterPanel(bg.transform, "UnitRewardPanel", new Vector2(0.04f, 0.16f), new Vector2(0.96f, 0.84f));
-        Text(panel.transform, "补员奖励", 28, FontStyle.Bold, new Color32(45, 24, 10, 255), new Vector2(0.10f, 0.84f), new Vector2(0.90f, 0.95f), TextAnchor.MiddleCenter);
-        Text(panel.transform, "购买一名棋子加入牌库", 15, FontStyle.Normal, new Color32(70, 46, 24, 255), new Vector2(0.10f, 0.78f), new Vector2(0.90f, 0.84f), TextAnchor.MiddleCenter);
+        Picture(bg.transform, "generated/ui/ui_skill_table_long.png", new Vector2(0.020f, 0.115f), new Vector2(0.980f, 0.880f), false);
+        var panel = Panel(bg.transform, "UnitRewardTableSurface", new Color32(0, 0, 0, 0));
+        Anchor(panel, new Vector2(0.04f, 0.16f), new Vector2(0.96f, 0.84f));
+        Text(panel.transform, "补员奖励", 28, FontStyle.Bold, new Color32(255, 236, 178, 240), new Vector2(0.10f, 0.84f), new Vector2(0.90f, 0.95f), TextAnchor.MiddleCenter);
+        Text(panel.transform, "购买一名棋子加入牌库", 15, FontStyle.Normal, new Color32(245, 223, 166, 235), new Vector2(0.10f, 0.78f), new Vector2(0.90f, 0.84f), TextAnchor.MiddleCenter);
         List<Unit> offers = MakeUnitRewardOffers();
         for (int i = 0; i < offers.Count; ++i)
         {
             Unit offer = offers[i];
             int price = RewardPrice(i);
-            DrawUnitChoiceButton(panel.transform, offer, "价格：" + price, new Vector2(0.04f + i * 0.19f, 0.30f), new Vector2(0.20f + i * 0.19f, 0.76f), () =>
+            DrawUnitChoiceButton(panel.transform, offer, "价格：" + price, new Vector2(0.055f + i * 0.185f, 0.28f), new Vector2(0.205f + i * 0.185f, 0.76f), () =>
             {
                 if (gold >= price)
                 {
@@ -2189,9 +2260,11 @@ public sealed class CardGameUnityApp : MonoBehaviour
         ClearCanvas();
         var bg = ScreenBackdrop("Refill");
         Stretch(bg);
-        var panel = CenterPanel(bg.transform, "RefillPanel", new Vector2(0.12f, 0.25f), new Vector2(0.88f, 0.78f));
-        Text(panel.transform, "牌库补员", 28, FontStyle.Bold, new Color32(45, 24, 10, 255), new Vector2(0.20f, 0.80f), new Vector2(0.80f, 0.92f), TextAnchor.MiddleCenter);
-        Text(panel.transform, "有 " + row + " 单位倒下。选择一名同排伙伴上场。", 18, FontStyle.Normal, new Color32(55, 34, 16, 255), new Vector2(0.20f, 0.70f), new Vector2(0.80f, 0.78f), TextAnchor.MiddleCenter);
+        Picture(bg.transform, "generated/ui/ui_skill_table_long.png", new Vector2(0.070f, 0.190f), new Vector2(0.930f, 0.805f), false);
+        var panel = Panel(bg.transform, "RefillTableSurface", new Color32(0, 0, 0, 0));
+        Anchor(panel, new Vector2(0.12f, 0.25f), new Vector2(0.88f, 0.78f));
+        Text(panel.transform, "牌库补员", 28, FontStyle.Bold, new Color32(255, 236, 178, 240), new Vector2(0.20f, 0.80f), new Vector2(0.80f, 0.92f), TextAnchor.MiddleCenter);
+        Text(panel.transform, "有 " + row + " 单位倒下。选择一名同排伙伴上场。", 18, FontStyle.Normal, new Color32(245, 223, 166, 235), new Vector2(0.20f, 0.70f), new Vector2(0.80f, 0.78f), TextAnchor.MiddleCenter);
         for (int i = 0; i < offers.Count; ++i)
         {
             Unit offer = offers[i];
@@ -2247,7 +2320,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
     {
         if (HasRelic("旧盾")) foreach (Unit u in Alive(playerBoard)) AddShield(u, 5);
         if (HasRelic("战鼓")) foreach (Unit u in Alive(playerBoard)) u.Atk += 5;
-        if (HasRelic("圣洁六翼")) foreach (Unit u in Alive(playerBoard)) AddShield(u, 20);
+        if (HasRelic("六翼庇护")) foreach (Unit u in Alive(playerBoard)) AddShield(u, 20);
         if (HasRelic("魔王残角"))
         {
             foreach (Unit u in Alive(playerBoard).Where(u => u.Faction == "魔族"))
@@ -2302,6 +2375,11 @@ public sealed class CardGameUnityApp : MonoBehaviour
             AddLog("邪神赐福：友军攻击提升，但生命流失。");
             CleanupDead();
         }
+        if (HasRelic("邪神诅咒"))
+        {
+            Unit cursed = HighestAtk(enemyBoard);
+            if (cursed != null) cursed.Atk = Mathf.Max(0, cursed.Atk - 2);
+        }
         if (HasRelic("医疗包")) Heal(Hero(), 3);
         if (HasRelic("锈蚀胸甲")) AddShield(Hero(), 5);
         if (HasRelic("跃动赤心")) foreach (Unit u in Alive(playerBoard)) Heal(u, 10);
@@ -2322,7 +2400,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
 
     private void TryFuseWorld()
     {
-        string[] parts = { "跃动赤心", "精灵王冠", "圣洁六翼", "邪神赐福" };
+        string[] parts = { "跃动赤心", "邪神赐福", "六翼庇护", "邪神诅咒" };
         if (HasRelic("世界")) return;
         foreach (string part in parts) if (!HasRelic(part)) return;
         foreach (string part in parts)
@@ -2530,14 +2608,29 @@ public sealed class CardGameUnityApp : MonoBehaviour
 
     private Unit PreferredAttackTarget(Unit attacker, Unit[] defenders)
     {
-        if (attacker == null) return FirstAlive(defenders);
+        int slot = PreferredAttackTargetSlot(attacker, defenders);
+        return slot >= 0 ? defenders[slot] : FirstAlive(defenders);
+    }
+
+    private int PreferredAttackTargetSlot(Unit attacker, Unit[] defenders)
+    {
+        if (attacker == null)
+        {
+            Unit first = FirstAlive(defenders);
+            if (first == null) return -1;
+            for (int i = 0; i < defenders.Length; ++i) if (defenders[i] == first) return i;
+            return -1;
+        }
         foreach (int slot in AttackTargetSlots(attacker.Row))
         {
             if (slot < 0 || slot >= defenders.Length) continue;
             Unit target = defenders[slot];
-            if (target != null && target.Hp > 0) return target;
+            if (target != null && target.Hp > 0) return slot;
         }
-        return FirstAlive(defenders);
+        Unit fallback = FirstAlive(defenders);
+        if (fallback == null) return -1;
+        for (int i = 0; i < defenders.Length; ++i) if (defenders[i] == fallback) return i;
+        return -1;
     }
 
     private int[] AttackTargetSlots(string attackerRow)
@@ -2615,29 +2708,36 @@ public sealed class CardGameUnityApp : MonoBehaviour
 
     private void AddRelic(string name)
     {
+        AddRelic(name, null);
+    }
+
+    private void AddRelic(string name, Action after)
+    {
         if (string.IsNullOrEmpty(name)) return;
-        bool instant = name == "许愿骨" || name == "染血符咒" || name == "死亡圣契" || name == "鎏金坩埚";
+        bool instant = IsInstantRelic(name);
         if (!instant && relics.Contains(name))
         {
             AddLog("已拥有遗物：" + name);
+            after?.Invoke();
             return;
         }
-        if (!instant && ActiveRelicCount() >= 7)
+        if (!instant && !IsStoryRelic(name) && OrdinaryRelicCount() >= OrdinaryRelicCapacity())
         {
-            int replaceIndex = relics.FindIndex(r => !IsStoryRelic(r));
-            if (replaceIndex < 0)
+            if (OrdinaryRelicCapacity() <= 0)
             {
-                AddLog("遗物槽已满，且没有可替换遗物。未获得：" + name);
+                AddLog("遗物槽已满，剧情遗物已占满全部槽位。未获得：" + name);
+                after?.Invoke();
                 return;
             }
-            AddLog("遗物槽已满，自动替换：" + relics[replaceIndex] + " -> " + name);
-            relicUses.Remove(relics[replaceIndex]);
-            relics.RemoveAt(replaceIndex);
+            ShowRelicReplaceWindow(name, after);
+            return;
         }
         relics.Add(name);
         relicUses[name] = InitialRelicUses(name);
         AddLog("获得遗物：" + name);
         ResolveInstantRelic(name);
+        if (IsStoryRelic(name)) TrimOrdinaryRelicsToCapacity();
+        after?.Invoke();
     }
 
     private int ActiveRelicCount()
@@ -2653,6 +2753,68 @@ public sealed class CardGameUnityApp : MonoBehaviour
         return count;
     }
 
+    private int OrdinaryRelicCount()
+    {
+        return relics.Count(r => !IsInstantRelic(r) && !IsStoryRelic(r));
+    }
+
+    private int OrdinaryRelicCapacity()
+    {
+        int storyCount = relics.Count(r => IsStoryRelic(r));
+        return Mathf.Max(0, MaxOrdinaryRelics - storyCount);
+    }
+
+    private void TrimOrdinaryRelicsToCapacity()
+    {
+        while (OrdinaryRelicCount() > OrdinaryRelicCapacity())
+        {
+            int index = relics.FindIndex(r => !IsInstantRelic(r) && !IsStoryRelic(r));
+            if (index < 0) return;
+            string removed = relics[index];
+            relics.RemoveAt(index);
+            relicUses.Remove(removed);
+            AddLog("剧情遗物占据固定槽位，移出普通遗物：" + removed);
+        }
+    }
+
+    private void ReplaceRelic(string oldRelic, string newRelic, Action after)
+    {
+        relics.Remove(oldRelic);
+        relicUses.Remove(oldRelic);
+        relics.Add(newRelic);
+        relicUses[newRelic] = InitialRelicUses(newRelic);
+        AddLog("遗物替换：" + oldRelic + " -> " + newRelic);
+        ResolveInstantRelic(newRelic);
+        after?.Invoke();
+    }
+
+    private void ShowRelicReplaceWindow(string newRelic, Action after)
+    {
+        ClearCanvas();
+        var bg = ScreenBackdrop("RelicReplace");
+        Stretch(bg);
+        var panel = CenterPanel(bg.transform, "RelicReplacePanel", new Vector2(0.08f, 0.18f), new Vector2(0.92f, 0.82f));
+        Text(panel.transform, "遗物槽已满", 28, FontStyle.Bold, new Color32(45, 24, 10, 255), new Vector2(0.10f, 0.84f), new Vector2(0.90f, 0.94f), TextAnchor.MiddleCenter);
+        Text(panel.transform, "选择一件普通遗物替换为：" + newRelic, 16, FontStyle.Normal, new Color32(65, 40, 20, 255), new Vector2(0.10f, 0.76f), new Vector2(0.90f, 0.84f), TextAnchor.MiddleCenter);
+
+        List<string> ordinary = relics.Where(r => !IsInstantRelic(r) && !IsStoryRelic(r)).ToList();
+        int count = Mathf.Min(ordinary.Count, 7);
+        for (int i = 0; i < count; ++i)
+        {
+            string oldRelic = ordinary[i];
+            float x = 0.055f + i * 0.128f;
+            DrawRewardCardButton(panel.transform, oldRelic, new Vector2(x, 0.36f), new Vector2(x + 0.105f, 0.68f), () =>
+            {
+                ReplaceRelic(oldRelic, newRelic, after);
+            });
+        }
+        Button(panel.transform, "放弃新遗物", new Vector2(0.40f, 0.12f), new Vector2(0.60f, 0.24f), () =>
+        {
+            AddLog("放弃遗物：" + newRelic);
+            after?.Invoke();
+        });
+    }
+
     private bool IsInstantRelic(string name)
     {
         return name == "许愿骨" || name == "染血符咒" || name == "死亡圣契" || name == "鎏金坩埚";
@@ -2660,7 +2822,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
 
     private bool IsStoryRelic(string name)
     {
-        return name == "跃动赤心" || name == "精灵王冠" || name == "圣洁六翼" || name == "邪神赐福" || name == "世界";
+        return name == "跃动赤心" || name == "邪神赐福" || name == "六翼庇护" || name == "邪神诅咒" || name == "世界";
     }
 
     private int InitialRelicUses(string name)
@@ -2886,16 +3048,17 @@ public sealed class CardGameUnityApp : MonoBehaviour
         return new[] { pool[seed % pool.Length], pool[(seed + 5) % pool.Length], pool[(seed + 10) % pool.Length] };
     }
 
-    private void ClaimReward(string reward)
+    private void ClaimReward(string reward, Action after = null)
     {
         Unit unit = TemplateByName(reward);
         if (unit != null)
         {
             roster.Add(unit);
             AddLog("加入牌库：" + reward);
+            after?.Invoke();
             return;
         }
-        AddRelic(reward);
+        AddRelic(reward, after);
     }
 
     private Unit TemplateByName(string name)
@@ -2946,7 +3109,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
         if (skill == "箭雨") return "敌方全体4伤害";
         if (skill == "鼓舞") return "友军攻击+2";
         if (skill == "治疗术") return "治疗失血友军12";
-        if (skill == "守护") return "主角10护盾";
+        if (skill == "守护") return "最低血友军10护盾";
         if (skill == "命运之刃") return "伤害并治疗全体";
         if (skill == "魔焰") return "敌方全体10伤害";
         if (skill == "圣光") return "友军全体治疗8";
@@ -2968,7 +3131,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
         if (skill == "\u7bad\u96e8") return "\u5bf9\u654c\u65b9\u5168\u4f53\u9020\u62104\u70b9\u7fa4\u4f53\u4f24\u5bb3\u3002";
         if (skill == "\u9f13\u821e") return "\u6240\u6709\u53cb\u519b\u653b\u51fb+2\uff0c\u5f53\u573a\u751f\u6548\u3002";
         if (skill == "\u6cbb\u7597\u672f") return "\u6cbb\u7597\u5931\u8840\u6700\u591a\u7684\u53cb\u519b12\u70b9\u751f\u547d\u3002";
-        if (skill == "\u5b88\u62a4") return "\u4e3a\u4e3b\u89d2\u589e\u52a010\u70b9\u62a4\u76fe\u3002";
+        if (skill == "\u5b88\u62a4") return "\u4e3a\u751f\u547d\u6700\u4f4e\u7684\u53cb\u519b\u589e\u52a010\u70b9\u62a4\u76fe\u3002";
         if (skill == "\u547d\u8fd0\u4e4b\u5203")
         {
             Unit hero = Hero();
@@ -3025,6 +3188,11 @@ public sealed class CardGameUnityApp : MonoBehaviour
         if (reward == "染血符咒") return "一次性：主角失血，永久攻击+1";
         if (reward == "死亡圣契") return "一次性：生命上限-5，全体回满";
         if (reward == "鎏金坩埚") return "一次性：花20金币获得铸剑";
+        if (reward == "跃动赤心") return "剧情遗物：每回合友军全体回复10生命";
+        if (reward == "邪神赐福") return "剧情遗物：每回合攻击提升但生命流失";
+        if (reward == "六翼庇护") return "剧情遗物：战斗开始友军全体获得20护盾";
+        if (reward == "邪神诅咒") return "剧情遗物：每回合压低敌方最高攻击";
+        if (reward == "世界") return "四件剧情遗物合成，主角大幅强化";
         return "遗物";
     }
 
