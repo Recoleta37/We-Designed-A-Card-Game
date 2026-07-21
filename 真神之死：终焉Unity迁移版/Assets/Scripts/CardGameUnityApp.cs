@@ -1662,7 +1662,7 @@ public sealed class CardGameUnityApp : MonoBehaviour
             if (target == null) yield break;
             int damage = attacker.Atk;
             if (ReferenceEquals(attackers, playerBoard) && HasRelic("世界")) damage += 50;
-            if (RowShort(attacker.Row) == "M" && targetSlot <= 1 && defenders.Length > 4 && defenders[4] != null && defenders[4].Hp > 0)
+            if (RowShort(attacker.Row) == "M" && targetSlot == 1 && defenders.Length > 4 && defenders[4] != null && defenders[4].Hp > 0)
             {
                 int rearShare = Mathf.Max(1, damage / 3);
                 int frontShare = Mathf.Max(0, damage - rearShare);
